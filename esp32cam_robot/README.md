@@ -1,5 +1,6 @@
 ## Project structure
 
+```
 esp32cam_robot/
 ├── esp32cam_robot.ino          # Main sketch file (minimal)
 ├── partitions.csv           
@@ -20,3 +21,4 @@ esp32cam_robot/
     ├── WebRequestHandlers.cpp  # Implementation for HTTP request handlers
     └── MotorControl.h          # Header for Motor control (Placeholder)
     └── MotorControl.cpp        # Implementation for Motor control (Placeholder)
+```

@@ -22,7 +22,6 @@ bool startWebServer() {
     httpd_uri_t status_uri = { "/status", HTTP_GET, statusHandler, NULL };
     httpd_uri_t control_uri = { "/control", HTTP_GET, controlHandler, NULL };
     httpd_uri_t capture_uri = { "/capture", HTTP_GET, captureHandler, NULL };
-    httpd_uri_t bmp_uri = { "/bmp", HTTP_GET, bmpHandler, NULL }; // Optional BMP
     httpd_uri_t move_uri = { "/move", HTTP_GET, moveHandler, NULL }; // New move handler
 
 
