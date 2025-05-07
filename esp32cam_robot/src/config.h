@@ -15,9 +15,9 @@
 #define LED_PIN 4 // Pin 4 is the flash LED on AI Thinker
 
 // TODO: Motors pins here later, e.g.
-// #define MOTOR_A_PIN1 12
-// #define MOTOR_A_PIN2 13
-// #define MOTOR_B_PIN1 14
-// #define MOTOR_B_PIN2 15
+#define MOTOR_A_PIN1 12
+#define MOTOR_A_PIN2 13
+#define MOTOR_B_PIN1 15
+#define MOTOR_B_PIN2 14
 
 #endif // CONFIG_H
