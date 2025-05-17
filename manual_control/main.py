@@ -1,5 +1,8 @@
 # manual_control/main.py
 
+# manual_control\venv_manual_control\Scripts\activate
+# python -m manual_control.main
+
 import cv2
 import asyncio  # Import asyncio
 from . import config
@@ -55,8 +58,6 @@ async def async_main():  # Make main an async function
                 break
 
             await asyncio.sleep(0.001)  # Yield control to the event loop very briefly
-            # This allows other async tasks (like HTTP requests) to run.
-            # Adjust if needed. Too long = choppy video. Too short = less responsive network.
 
     finally:  # Ensure cleanup
         cap.release()
@@ -70,4 +71,3 @@ if __name__ == "__main__":
         asyncio.run(async_main())
     except KeyboardInterrupt:
         print("Main loop interrupted by user.")
-    # The finally block in async_main should handle client closing

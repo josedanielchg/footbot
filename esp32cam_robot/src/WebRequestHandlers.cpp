@@ -384,16 +384,57 @@ esp_err_t streamHandler(httpd_req_t *req){
 }
 
 
-// --- New Move Handler ---
 esp_err_t moveHandler(httpd_req_t *req) {
-    char *buf = NULL;
-    char direction[32];
-    esp_err_t ret = parse_get(req, &buf);
-    if (ret != ESP_OK) { return ret; }
+    char content[100]; // Buffer to store the request body
+    int ret, remaining = req->content_len;
 
-    // Example: Parse direction=forward, direction=left, etc.
-    if (httpd_query_key_value(buf, "direction", direction, sizeof(direction)) == ESP_OK) {
-        Serial.printf("Move command received: direction=%s\n", direction);
+    // Read the request body
+    // Ensure we don't read more than the buffer size or content_len
+    int received = 0;
+    if (remaining > sizeof(content) -1) {
+        remaining = sizeof(content) -1; // Prevent buffer overflow
+    }
+
+    while (remaining > 0) {
+        ret = httpd_req_recv(req, content + received, remaining);
+        if (ret <= 0) { // Error or connection closed
+            if (ret == HTTPD_SOCK_ERR_TIMEOUT) {
+                // Retry receiving if timeout
+                continue;
+            }
+            Serial.println("Failed to receive POST body");
+            httpd_resp_send_500(req);
+            return ESP_FAIL;
+        }
+        received += ret;
+        remaining -= ret;
+    }
+    content[received] = '\0'; // Null-terminate the received content
+
+    Serial.printf("Received POST body for /move: %s\n", content);
+
+    // --- Basic JSON-like string parsing ---
+    // This is a very simple parser. For complex JSON, use a library like ArduinoJson.
+    char direction[32] = {0};
+    char *direction_ptr = strstr(content, "\"direction\"");
+    if (direction_ptr) {
+        direction_ptr = strchr(direction_ptr, ':'); // Find ':' after "direction"
+        if (direction_ptr) {
+            direction_ptr++; // Move past ':'
+            while (*direction_ptr == ' ' || *direction_ptr == '"') { // Skip spaces and opening quote
+                direction_ptr++;
+            }
+            int i = 0;
+            while (*direction_ptr != '"' && *direction_ptr != '\0' && i < sizeof(direction) - 1) {
+                direction[i++] = *direction_ptr++;
+            }
+            direction[i] = '\0'; // Null-terminate the extracted direction
+        }
+    }
+
+    if (strlen(direction) > 0) {
+        Serial.printf("Parsed direction from POST: %s\n", direction);
+
         if (strcmp(direction, "forward") == 0) {
             moveForward();
         } else if (strcmp(direction, "backward") == 0) {
@@ -405,23 +446,25 @@ esp_err_t moveHandler(httpd_req_t *req) {
         } else if (strcmp(direction, "stop") == 0) {
             stopMotors();
         } else {
-            Serial.println("Unknown move direction");
-            httpd_resp_send_500(req); // Bad Request
-            free(buf);
+            Serial.printf("Unknown move direction in POST: %s\n", direction);
+            httpd_resp_set_status(req, "400 Bad Request");
+            httpd_resp_send(req, "Unknown direction", HTTPD_RESP_USE_STRLEN);
             return ESP_FAIL;
         }
+
+        // If command was recognized and called
+        httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+        httpd_resp_send(req, "OK", HTTPD_RESP_USE_STRLEN);
+        return ESP_OK;
+
     } else {
-        Serial.println("Move command missing 'direction' parameter");
-        httpd_resp_send_500(req); // Bad Request
-        free(buf);
+        Serial.println("Could not parse 'direction' from POST body or body is empty/malformed.");
+        httpd_resp_set_status(req, "400 Bad Request");
+        httpd_resp_send(req, "Malformed request or missing 'direction' in JSON body", HTTPD_RESP_USE_STRLEN);
         return ESP_FAIL;
     }
-
-    free(buf);
-    httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
-    httpd_resp_send(req, "OK", HTTPD_RESP_USE_STRLEN);
-    return ESP_OK;
 }
+
 
 // Call this once to initialize the filter
 void initializeWebRequestHandlers() {

@@ -8,8 +8,8 @@ void setMotor(int motorAPin1, int motorAPin2, int stateA,
             int motorBPin1, int motorBPin2, int stateB)
 {
     // Motor A Control
-    digitalWrite(motorAPin1, stateA > 0 ? HIGH : LOW);
-    digitalWrite(motorAPin2, stateA < 0 ? HIGH : LOW);
+    digitalWrite(motorAPin2, stateA > 0 ? HIGH : LOW);
+    digitalWrite(motorAPin1, stateA < 0 ? HIGH : LOW);
 
     // Motor B Control
     digitalWrite(motorBPin1, stateB > 0 ? HIGH : LOW);

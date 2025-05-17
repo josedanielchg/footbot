@@ -7,6 +7,9 @@
 #define WIFI_SSID "Daniel WiFi"
 #define WIFI_PASSWORD "28324600"
 
+// #define WIFI_SSID "wifimkhAP"
+// #define WIFI_PASSWORD "2832460X"
+
 // Web Server Ports
 #define HTTP_CONTROL_PORT 80
 #define HTTP_STREAM_PORT 81
@@ -15,9 +18,9 @@
 #define LED_PIN 4 // Pin 4 is the flash LED on AI Thinker
 
 // TODO: Motors pins here later, e.g.
-#define MOTOR_A_PIN1 12
-#define MOTOR_A_PIN2 13
-#define MOTOR_B_PIN1 15
-#define MOTOR_B_PIN2 14
+#define MOTOR_A_PIN1 13
+#define MOTOR_A_PIN2 12
+#define MOTOR_B_PIN1 14
+#define MOTOR_B_PIN2 15
 
 #endif // CONFIG_H

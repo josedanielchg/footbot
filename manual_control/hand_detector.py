@@ -94,9 +94,8 @@ class HandDetector:
         if not hand_landmarks_result or not hand_landmarks_result.multi_hand_landmarks:
             return None
 
-        # For simplicity, use the first detected hand
         hand_landmarks = hand_landmarks_result.multi_hand_landmarks[0].landmark
-        handedness = "Right" # Default, can be improved if needed by checking results.multi_handedness
+        handedness = "Right"
 
         if hand_landmarks_result.multi_handedness:
             handedness = hand_landmarks_result.multi_handedness[0].classification[0].label
