@@ -7,9 +7,9 @@ from . import config
 
 # To prevent spamming commands
 last_sent_command = None
-COMMAND_SEND_INTERVAL_MS = 300  # Send command at most every 300ms if different
+COMMAND_SEND_INTERVAL_MS = 100  # Send command at most every 300ms if different
 # Or if same command, can be sent more frequently if needed for responsiveness
-MIN_TIME_BETWEEN_ANY_COMMAND_MS = 100  # A hard limit to avoid flooding
+MIN_TIME_BETWEEN_ANY_COMMAND_MS = 50  # A hard limit to avoid flooding
 last_command_time = 0
 
 # --- New variables for async request management ---

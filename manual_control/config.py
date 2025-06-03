@@ -1,7 +1,9 @@
 # --- ESP32 Communication Settings ---
-ESP32_IP_ADDRESS = "192.168.43.2"
+ESP32_IP_ADDRESS = "192.168.43.2" # Make sure this is correct
 ESP32_CONTROL_PORT = 80
 ESP32_MOVE_ENDPOINT = f"http://{ESP32_IP_ADDRESS}:{ESP32_CONTROL_PORT}/move"
+HTTP_TIMEOUT_CONNECT = 2.0 # Seconds
+HTTP_TIMEOUT_READ = 1.0    # Seconds
 
 # --- Hand Detection Settings ---
 MIN_DETECTION_CONFIDENCE = 0.6 # Higher value = more strict detection, less false positives
@@ -27,3 +29,10 @@ FINGER_MCP = {
     "RING": 13,     # Ring finger MCP
     "PINKY": 17     # Pinky MCP
 }
+
+# --- Robot Command Settings ---
+COMMAND_SEND_INTERVAL_MS = 200  # Min interval to resend the *same* command
+MIN_TIME_BETWEEN_ANY_COMMAND_MS = 100 # Min interval between *any* two commands
+
+# --- Camera Settings ---
+WEBCAM_INDEX = 0
