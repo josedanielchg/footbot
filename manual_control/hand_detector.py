@@ -57,13 +57,12 @@ class HandDetector(DetectionManager):
         :param results: The results object from MediaPipe hands.process().
         :return: A tuple (list_of_landmarks, handedness_str) or (None, None)
         """
+        detected_hands_data = []
         if results.multi_hand_landmarks:
-            # For simplicity, use the first detected hand
-            hand_landmarks_proto = results.multi_hand_landmarks[0]
-            landmarks = hand_landmarks_proto.landmark # This is the list of landmark objects
-
-            handedness = "Right" # Default
-            if results.multi_handedness:
-                handedness = results.multi_handedness[0].classification[0].label
-            return landmarks, handedness
-        return None, None
+            for i, hand_landmarks_proto in enumerate(results.multi_hand_landmarks):
+                landmarks = hand_landmarks_proto.landmark
+                handedness = "Unknown" # Default
+                if results.multi_handedness and len(results.multi_handedness) > i:
+                    handedness = results.multi_handedness[i].classification[0].label
+                detected_hands_data.append((landmarks, handedness))
+        return detected_hands_data

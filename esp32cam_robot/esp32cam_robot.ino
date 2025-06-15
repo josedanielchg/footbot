@@ -15,7 +15,7 @@ void setup() {
 
   // Initialize components
   setupLed();       // Setup the LED pin
-  setupMotors();    // Setup motor control pins (placeholder)
+  setupMotors();    // Setup motor control       pins (placeholder)
 
   // Initialize the camera
   if (!initCamera()) {

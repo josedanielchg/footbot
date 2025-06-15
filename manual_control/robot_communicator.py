@@ -3,13 +3,15 @@ import httpx
 import asyncio
 import time
 from . import config
+import json
 
 class RobotCommunicator:
     def __init__(self):
         self.http_client = None
         self.is_request_in_flight = False
-        self.last_sent_command_to_robot = None # Renamed to be specific
-        self.last_command_time_robot = 0       # Renamed
+        self.last_sent_command_to_robot = None
+        self.last_sent_speed_to_robot = None
+        self.last_command_time_robot = 0
 
     async def initialize(self):
         if self.http_client is None:
@@ -24,10 +26,8 @@ class RobotCommunicator:
             self.http_client = None
             print("RobotCommunicator: Async HTTP client closed.")
 
-    async def send_command(self, command):
-        if not command: # If no command, do nothing or send stop
-            # Decide if a "None" command should implicitly send "stop"
-            # For now, let's assume the calling logic handles that.
+    async def send_command(self, direction, speed=config.DEFAULT_SPEED):
+        if not direction:
             return
 
         if not self.http_client:
@@ -40,32 +40,37 @@ class RobotCommunicator:
         if current_time_ms - self.last_command_time_robot < config.MIN_TIME_BETWEEN_ANY_COMMAND_MS:
             return
 
-        # Prevent resending the *same* command too quickly
-        if command == self.last_sent_command_to_robot and \
-           current_time_ms - self.last_command_time_robot < config.COMMAND_SEND_INTERVAL_MS:
+        # Send if command OR speed changed, or enough time passed for resending same command/speed
+        if (direction == self.last_sent_command_to_robot and speed == self.last_sent_speed_to_robot) and \
+           (current_time_ms - self.last_command_time_robot < config.COMMAND_SEND_INTERVAL_MS):
             return
+
 
         if self.is_request_in_flight:
             # print(f"RobotCommunicator: Request for '{self.last_sent_command_to_robot}' still in flight. Skipping '{command}'.")
             return
 
         self.is_request_in_flight = True
-        payload = {"direction": command}
-        # print(f"RobotCommunicator: Attempting to send command: {command}")
+        payload = {"direction": direction, "speed": int(speed)}
+        
+         # --- Print JSON payload for debugging ---
+        json_payload_str = json.dumps(payload)
+        print(f"RobotCommunicator: Attempting to send payload: {json_payload_str}")
 
         try:
             response = await self.http_client.post(config.ESP32_MOVE_ENDPOINT, json=payload)
             response.raise_for_status()
-            print(f"RobotCommunicator: Sent '{command}', ESP32 Response: {response.status_code} - {response.text}")
-            self.last_sent_command_to_robot = command
+            print(f"RobotCommunicator: Sent '{direction}', ESP32 Response: {response.status_code} - {response.text}")
+            self.last_sent_command_to_robot = direction
+            self.last_sent_speed_to_robot = speed
             self.last_command_time_robot = current_time_ms
         except httpx.ReadTimeout:
-            print(f"RobotCommunicator: ReadTimeout sending command '{command}'.")
+            print(f"RobotCommunicator: ReadTimeout sending command '{direction}'.")
         except httpx.ConnectTimeout:
-             print(f"RobotCommunicator: ConnectTimeout sending command '{command}'.")
+             print(f"RobotCommunicator: ConnectTimeout sending command '{direction}'.")
         except httpx.RequestError as e:
-            print(f"RobotCommunicator: Error sending command '{command}': {e}")
+            print(f"RobotCommunicator: Error sending command '{direction}': {e}")
         except Exception as e:
-            print(f"RobotCommunicator: Unexpected error sending command '{command}': {e}")
+            print(f"RobotCommunicator: Unexpected error sending command '{direction}': {e}")
         finally:
             self.is_request_in_flight = False

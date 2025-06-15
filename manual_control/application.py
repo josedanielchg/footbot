@@ -36,42 +36,57 @@ class Application:
         while self.running and self.camera_manager.is_opened():
             frame = self.camera_manager.get_frame()
             if frame is None:
-                await asyncio.sleep(0.01) # Brief pause if no frame
+                await asyncio.sleep(0.01)
                 continue
+            
+            frame_height, frame_width, _ = frame.shape
 
             # 1. Detect hands (or other objects in the future)
-            processed_frame, detection_results = self.hand_detector.process_frame(frame, draw=True)
+            processed_frame, detection_results_mp = self.hand_detector.process_frame(frame, draw=True)
 
             # 2. Extract relevant data from detection
-            hand_landmarks, handedness = self.hand_detector.get_detection_data(detection_results)
+            # --- Process detected hands ---
+            all_hands_data = self.hand_detector.get_detection_data(detection_results_mp)
+
+            right_hand_landmarks = None
+            left_hand_landmarks = None
+
+            # --- Iterate through detected hands to find left and right ---
+            for landmarks, handedness_str in all_hands_data:
+                if handedness_str.lower() == "right": # Use .lower() for case-insensitivity
+                    right_hand_landmarks = landmarks
+                    # print("Found Right Hand")
+                elif handedness_str.lower() == "left":
+                    left_hand_landmarks = landmarks
+                    # print("Found Left Hand")
+
+            # 3.1 Classify gesture based on landmarks
+            # --- Get Direction from Right Hand ---
+            current_direction_command = "stop" # Default
+
+            if right_hand_landmarks:
+                right_fingers_status = self.gesture_classifier.get_fingers_status(right_hand_landmarks, "Right")
+                if right_fingers_status:
+                    cmd = self.gesture_classifier.classify_gesture(right_fingers_status)
+                    if cmd:
+                        current_direction_command = cmd
+            
+            # 3.2 Calculate spped based on landmarks
+            # --- Get Speed from Left Hand ---
+            current_speed = config.DEFAULT_SPEED
+            if left_hand_landmarks:
+                current_speed = self.gesture_classifier.calculate_speed_from_left_hand(
+                    left_hand_landmarks, frame_width, frame_height
+                )
+                # Display speed (optional)
+                cv2.putText(processed_frame, f"Speed: {current_speed}", (10, 60),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
 
             current_command = "stop" # Default to stop if no hand or specific gesture
 
-            if hand_landmarks:
-                # 3. Classify gesture based on landmarks
-                fingers_status = self.gesture_classifier.get_fingers_status(hand_landmarks, handedness)
-                if fingers_status:
-                    # Display finger status (optional)
-                    finger_names = ["Thumb", "Index", "Middle", "Ring", "Pinky"]
-                    status_text = ", ".join([f"{name}: {'Down' if status else 'Up'}"
-                                             for name, status in zip(finger_names, fingers_status)])
-                    cv2.putText(processed_frame, status_text, (10, 30),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
-
-                    # Get command from gesture
-                    gesture_command = self.gesture_classifier.classify_gesture(fingers_status)
-                    if gesture_command:
-                        current_command = gesture_command
-            
             # 4. Send command to robot (if changed or needs resending based on communicator's logic)
-            # The communicator now handles its own rate limiting and "in-flight" checks.
-            # Only create a task if the command is potentially new or important to resend.
-            if current_command != self.robot_communicator.last_sent_command_to_robot or current_command == "stop":
-                asyncio.create_task(self.robot_communicator.send_command(current_command))
-            elif current_command: # Resend non-stop commands periodically
-                # Check if enough time has passed since last_command_time_robot in communicator
-                if time.time() * 1000 - self.robot_communicator.last_command_time_robot > config.COMMAND_SEND_INTERVAL_MS :
-                    asyncio.create_task(self.robot_communicator.send_command(current_command))
+            # The communicator handles rate limiting and in-flight checks.
+            asyncio.create_task(self.robot_communicator.send_command(current_direction_command, current_speed))
 
             # 5. Display processed frame
             cv2.imshow('Hand Gesture Control', processed_frame)

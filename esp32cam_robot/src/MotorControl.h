@@ -7,11 +7,11 @@
 void setupMotors();
 
 // --- Robot Movement Commands ---
-void moveForward();
-void moveBackward();
-void turnLeft();
-void turnRight();
-void stopMotors();
+void moveForward(int speed);
+void moveBackward(int speed);
+void turnLeft(int speed);
+void turnRight(int speed);
+void stopMotors();              // stopMotors typically doesn't take speed, it implies 0
 
 // TODO: Speed control later:
 // void setSpeed(int speed); // Speed 0-255
