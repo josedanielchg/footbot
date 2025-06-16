@@ -1,5 +1,5 @@
 # --- ESP32 Communication Settings ---
-ESP32_IP_ADDRESS = "192.168.43.2" # Make sure this is correct
+ESP32_IP_ADDRESS = "192.168.1.12" # Make sure this is correct
 ESP32_CONTROL_PORT = 80
 ESP32_MOVE_ENDPOINT = f"http://{ESP32_IP_ADDRESS}:{ESP32_CONTROL_PORT}/move"
 HTTP_TIMEOUT_CONNECT = 2.0 # Seconds

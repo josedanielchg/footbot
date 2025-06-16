@@ -47,15 +47,17 @@ class GestureClassifier:
         """
         Classifies the directional gesture based on the RIGHT hand's finger statuses.
         :param right_hand_fingers_status: List of 5 booleans for the right hand.
-        :return: A command string (e.g., "forward", "stop", "left", "right") or None.
+        :return: A command string (e.g., "forward", "stop", "left", "right", "backward") or None.
         """
         if right_hand_fingers_status is None:
             return "stop" # Default to stop if no fingers detected/valid status
 
-        elif not right_hand_fingers_status[0] and right_hand_fingers_status[1] and right_hand_fingers_status[2] and right_hand_fingers_status[3] and not right_hand_fingers_status[4]:
+        elif not right_hand_fingers_status[0] and not right_hand_fingers_status[1] and right_hand_fingers_status[2] and right_hand_fingers_status[3] and right_hand_fingers_status[4]:
             return "left"
-        if not right_hand_fingers_status[0] and not right_hand_fingers_status[1] and right_hand_fingers_status[2] and right_hand_fingers_status[3] and right_hand_fingers_status[4]:
+        if not right_hand_fingers_status[0] and right_hand_fingers_status[1] and right_hand_fingers_status[2] and right_hand_fingers_status[3] and not right_hand_fingers_status[4]:
             return "right"
+        if not right_hand_fingers_status[0] and  right_hand_fingers_status[1] and right_hand_fingers_status[2] and right_hand_fingers_status[3] and right_hand_fingers_status[4]:
+            return "backward"
         # Gesture: All five fingers "down" (curled) means "forward"
         elif all(right_hand_fingers_status):
             return "forward"
