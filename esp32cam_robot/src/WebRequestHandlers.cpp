@@ -11,7 +11,7 @@
 #include <stdlib.h>             // For atoi
 #include <string.h>             // For strcmp, strlen
 #include "esp_http_server.h"
-
+#include <ctype.h> 
 
 typedef struct {
     httpd_req_t *req;
@@ -383,88 +383,124 @@ esp_err_t streamHandler(httpd_req_t *req){
     return res;
 }
 
-
 esp_err_t moveHandler(httpd_req_t *req) {
-    char content[100]; // Buffer to store the request body
+    char content[150]; // Buffer for the request body
     int ret, remaining = req->content_len;
-
-    // Read the request body
-    // Ensure we don't read more than the buffer size or content_len
     int received = 0;
-    if (remaining > sizeof(content) -1) {
-        remaining = sizeof(content) -1; // Prevent buffer overflow
+
+    // 1. Read the request body
+    if (remaining == 0) {
+        Serial.println("Error: POST body is empty for /move.");
+        httpd_resp_set_status(req, "400 Bad Request");
+        httpd_resp_send(req, "Empty request body", HTTPD_RESP_USE_STRLEN);
+        return ESP_FAIL;
     }
 
-    while (remaining > 0) {
-        ret = httpd_req_recv(req, content + received, remaining);
-        if (ret <= 0) { // Error or connection closed
+    if (remaining >= sizeof(content)) { // Check if content_len is too large for buffer
+        Serial.printf("Error: POST body too large (%d bytes) for buffer (%d bytes).\n", remaining, sizeof(content));
+        httpd_resp_set_status(req, "413 Request Entity Too Large");
+        httpd_resp_send(req, "Request body too large", HTTPD_RESP_USE_STRLEN);
+        return ESP_FAIL;
+    }
+
+    while (received < req->content_len) {
+        ret = httpd_req_recv(req, content + received, req->content_len - received);
+        if (ret <= 0) {
             if (ret == HTTPD_SOCK_ERR_TIMEOUT) {
-                // Retry receiving if timeout
-                continue;
+                // If timeout, can retry or fail
+                Serial.println("Timeout receiving POST body chunk.");
+                // For simplicity, we'll fail on timeout during recv
+                httpd_resp_send_500(req); // Or 408 Request Timeout
+                return ESP_FAIL;
             }
-            Serial.println("Failed to receive POST body");
+            Serial.println("Failed to receive POST body chunk.");
             httpd_resp_send_500(req);
             return ESP_FAIL;
         }
         received += ret;
-        remaining -= ret;
     }
     content[received] = '\0'; // Null-terminate the received content
 
-    Serial.printf("Received POST body for /move: %s\n", content);
+    Serial.printf("Received POST body for /move: [%s]\n", content); // Print with brackets to see invisible chars
 
-    // --- Basic JSON-like string parsing ---
-    // This is a very simple parser. For complex JSON, use a library like ArduinoJson.
+    // 2. Parse JSON-like string for "direction" and "speed"
     char direction[32] = {0};
-    char *direction_ptr = strstr(content, "\"direction\"");
-    if (direction_ptr) {
-        direction_ptr = strchr(direction_ptr, ':'); // Find ':' after "direction"
-        if (direction_ptr) {
-            direction_ptr++; // Move past ':'
-            while (*direction_ptr == ' ' || *direction_ptr == '"') { // Skip spaces and opening quote
-                direction_ptr++;
+    int speed = 150; // Default speed if not found or parse error
+    bool direction_found = false;
+    bool speed_found = false;
+
+    // --- Parse "direction" ---
+    char *key_ptr = strstr(content, "\"direction\"");
+    if (key_ptr) {
+        char *value_ptr = strchr(key_ptr, ':');
+        if (value_ptr) {
+            value_ptr++; // Move past ':'
+            while (*value_ptr == ' ' || *value_ptr == '\t' || *value_ptr == '"') { // Skip whitespace and opening quote
+                value_ptr++;
             }
             int i = 0;
-            while (*direction_ptr != '"' && *direction_ptr != '\0' && i < sizeof(direction) - 1) {
-                direction[i++] = *direction_ptr++;
+            while (*value_ptr != '"' && *value_ptr != '\0' && i < sizeof(direction) - 1) {
+                direction[i++] = *value_ptr++;
             }
-            direction[i] = '\0'; // Null-terminate the extracted direction
+            direction[i] = '\0'; // Null-terminate
+            if (strlen(direction) > 0) {
+                direction_found = true;
+            }
         }
     }
 
-    if (strlen(direction) > 0) {
-        Serial.printf("Parsed direction from POST: %s\n", direction);
+    // --- Parse "speed" ---
+    key_ptr = strstr(content, "\"speed\"");
+    if (key_ptr) {
+        char *value_ptr = strchr(key_ptr, ':');
+        if (value_ptr) {
+            value_ptr++; // Move past ':'
+            while (*value_ptr == ' ' || *value_ptr == '\t') { // Skip whitespace
+                value_ptr++;
+            }
+            if (isdigit((unsigned char)*value_ptr) || (*value_ptr == '-' && isdigit((unsigned char)*(value_ptr+1))) ) { // Check for digit or negative sign
+                speed = atoi(value_ptr); // atoi stops at first non-digit
+                // Constrain speed
+                if (speed < 0) speed = 0;
+                if (speed > 255) speed = 255; // Assuming 0-255 range for PWM
+                speed_found = true;
+            }
+        }
+    }
+
+    // 3. Act on parsed values
+    if (direction_found) {
+        Serial.printf("Parsed direction: [%s], Parsed speed: %d (Speed field %s)\n",
+                      direction, speed, speed_found ? "found" : "not found/defaulted");
 
         if (strcmp(direction, "forward") == 0) {
-            moveForward();
+            moveForward(speed);
         } else if (strcmp(direction, "backward") == 0) {
-            moveBackward();
+            moveBackward(speed);
         } else if (strcmp(direction, "left") == 0) {
-            turnLeft();
+            turnLeft(speed);
         } else if (strcmp(direction, "right") == 0) {
-            turnRight();
+            turnRight(speed);
         } else if (strcmp(direction, "stop") == 0) {
             stopMotors();
         } else {
-            Serial.printf("Unknown move direction in POST: %s\n", direction);
+            Serial.printf("Unknown move direction in POST: [%s]\n", direction);
             httpd_resp_set_status(req, "400 Bad Request");
-            httpd_resp_send(req, "Unknown direction", HTTPD_RESP_USE_STRLEN);
+            httpd_resp_send(req, "Unknown direction value", HTTPD_RESP_USE_STRLEN);
             return ESP_FAIL;
         }
 
-        // If command was recognized and called
         httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
         httpd_resp_send(req, "OK", HTTPD_RESP_USE_STRLEN);
         return ESP_OK;
 
     } else {
-        Serial.println("Could not parse 'direction' from POST body or body is empty/malformed.");
+        Serial.println("Could not parse 'direction' key/value from POST body.");
         httpd_resp_set_status(req, "400 Bad Request");
-        httpd_resp_send(req, "Malformed request or missing 'direction' in JSON body", HTTPD_RESP_USE_STRLEN);
+        httpd_resp_send(req, "Malformed request: 'direction' key/value missing or invalid", HTTPD_RESP_USE_STRLEN);
         return ESP_FAIL;
     }
 }
-
 
 // Call this once to initialize the filter
 void initializeWebRequestHandlers() {

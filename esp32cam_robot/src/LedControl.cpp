@@ -3,7 +3,7 @@
 #include <Arduino.h>
 #include "esp32-hal-ledc.h"     // For ledc functions
 
-#define LED_LEDC_CHANNEL 0      // Use channel 0 for LEDC
+#define LED_LEDC_CHANNEL 2
 #define LED_LEDC_FREQ 5000
 #define LED_LEDC_RESOLUTION 8   // 8-bit resolution (0-255)
 
