@@ -4,10 +4,10 @@
 #define CAMERA_MODEL_AI_THINKER
 
 // WiFi Credentials
-#define WIFI_SSID "General"
-#define WIFI_PASSWORD "MaDu$2022"
-// #define WIFI_SSID "Daniel WiFi"
-// #define WIFI_PASSWORD "28324600"
+// #define WIFI_SSID "General"
+// #define WIFI_PASSWORD "MaDu$2022"
+#define WIFI_SSID "Daniel WiFi"
+#define WIFI_PASSWORD "28324600"
 
 // #define WIFI_SSID "wifimkhAP"
 // #define WIFI_PASSWORD "2832460X"
