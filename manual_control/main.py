@@ -1,7 +1,7 @@
 # manual_control/main.py
 # To run:
 # 1. cd to parent directory of 'manual_control'
-# 2. manual_control/venv_manual_control/Scripts/activate  (or source .../bin/activate)
+# 2. manual_control\venv_manual_control\Scripts\activate  (or source .../bin/activate)
 # 3. python -m manual_control.main
 
 import asyncio

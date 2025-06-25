@@ -53,9 +53,9 @@ class GestureClassifier:
             return "stop" # Default to stop if no fingers detected/valid status
 
         elif not right_hand_fingers_status[0] and not right_hand_fingers_status[1] and right_hand_fingers_status[2] and right_hand_fingers_status[3] and right_hand_fingers_status[4]:
-            return "left"
-        if not right_hand_fingers_status[0] and right_hand_fingers_status[1] and right_hand_fingers_status[2] and right_hand_fingers_status[3] and not right_hand_fingers_status[4]:
             return "right"
+        if not right_hand_fingers_status[0] and right_hand_fingers_status[1] and right_hand_fingers_status[2] and right_hand_fingers_status[3] and not right_hand_fingers_status[4]:
+            return "left"
         if not right_hand_fingers_status[0] and  right_hand_fingers_status[1] and right_hand_fingers_status[2] and right_hand_fingers_status[3] and right_hand_fingers_status[4]:
             return "backward"
         # Gesture: All five fingers "down" (curled) means "forward"
