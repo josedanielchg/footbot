@@ -1,0 +1,39 @@
+# auto_soccer_bot/config_auto.py
+
+# --- Video Source ---
+# Set to 'webcam' or 'esp32_stream'
+VIDEO_SOURCE = 'esp32_stream' # 'webcam' or 'esp32_stream'
+WEBCAM_INDEX = 0
+
+# --- ESP32 Communication Settings
+ESP32_IP_ADDRESS = "192.168.43.2"
+ESP32_CONTROL_PORT = 80
+ESP32_STREAM_URL = f"http://{ESP32_IP_ADDRESS}:81/stream"
+ESP32_MOVE_ENDPOINT = f"http://{ESP32_IP_ADDRESS}:{ESP32_CONTROL_PORT}/move"
+HTTP_TIMEOUT_CONNECT = 2.0
+HTTP_TIMEOUT_READ = 1.0
+
+# --- Ball Detection Settings (Tennis Ball - Yellow/Green) ---
+# These HSV values are a starting point and WILL LIKELY NEED TUNING.
+# Use a color picker tool in HSV space to find the range for your specific tennis ball and lighting.
+LOWER_BALL_COLOR = (20, 100, 100) # Lower HSV for tennis ball yellow/green
+UPPER_BALL_COLOR = (80, 255, 255) # Upper HSV for tennis ball yellow/green
+MIN_BALL_CONTOUR_AREA = 100       # Minimum area to consider a contour as a ball (pixels^2)
+
+# --- Robot Control Logic ---
+# Defines a central target area on the screen. Values are proportions of frame width/height (0.0 to 1.0)
+TARGET_ZONE_X_MIN = 0.30  # e.g., 20% from the left
+TARGET_ZONE_X_MAX = 0.70  # e.g., 80% from the left
+TARGET_ZONE_Y_MIN = 0.60  # Consider the lower part of the frame for "close enough"
+TARGET_ZONE_Y_MAX = 0.90
+
+DEFAULT_ROBOT_SPEED = 150
+TURN_SPEED_FACTOR = 1.0 # Factor to multiply default speed for turning (can be > 1 for faster turns)
+APPROACH_SPEED_FACTOR = 0.8 # Factor for moving towards the ball
+
+MIN_SPEED = 50
+MAX_SPEED = 255   
+
+# --- Command Sending ---
+COMMAND_SEND_INTERVAL_MS = 200
+MIN_TIME_BETWEEN_ANY_COMMAND_MS = 100
