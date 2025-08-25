@@ -7,7 +7,7 @@
 #include <string.h>
 #include <ctype.h>
 
-bool parseMoveCommandJson(const char* json_string, char* direction_out, int max_direction_len, int* speed_out, bool* speed_was_found_in_json) {
+bool parseMoveCommandJson(const char* json_string, char* direction_out, int max_direction_len, int* speed_out, float* turn_ratio_out, bool* speed_was_found_in_json) {
     if (json_string == nullptr || direction_out == nullptr || speed_out == nullptr || speed_was_found_in_json == nullptr) {
         Serial.println(F("Error: Null pointer passed to parseMoveCommandJson."));
         return false;
@@ -49,6 +49,12 @@ bool parseMoveCommandJson(const char* json_string, char* direction_out, int max_
         }
     } else {
         Serial.println(F("JSON 'speed' key not found. Using default speed."));
+    }
+
+    // --- Extract "turn_ratio" (optional, with default) ---
+    *turn_ratio_out = 1; // Default to pivot turn if not specified
+    if (doc.containsKey("turn_ratio") && doc["turn_ratio"].is<float>()) {
+        *turn_ratio_out = doc["turn_ratio"].as<float>();
     }
 
     return true;
@@ -95,9 +101,10 @@ esp_err_t moveHandler(httpd_req_t *req) {
     // 2. Parse JSON using ArduinoJson v7
     char direction[32] = {0};
     int speed = 150; // Default, will be updated by parser
+    float turn_ratio = 1;
     bool speed_was_present_in_json = false;
 
-    if (!parseMoveCommandJson(content, direction, sizeof(direction), &speed, &speed_was_present_in_json)) {
+    if (!parseMoveCommandJson(content, direction, sizeof(direction), &speed, &turn_ratio, &speed_was_present_in_json)) {
         // parseMoveCommandJson already prints detailed errors
         httpd_resp_set_status(req, "400 Bad Request");
         httpd_resp_send(req, "Malformed JSON or missing 'direction' key", HTTPD_RESP_USE_STRLEN);
@@ -105,8 +112,7 @@ esp_err_t moveHandler(httpd_req_t *req) {
     }
 
     // 3. Act on parsed values
-    Serial.printf("Parsed direction: [%s], Parsed speed: %d (Speed field %s)\n",
-                  direction, speed, speed_was_present_in_json ? "found" : "not found/defaulted");
+    Serial.printf("Parsed dir: [%s], speed: %d, turn_ratio: %.2f\n", direction, speed, turn_ratio);
 
     if (strcmp(direction, "forward") == 0) {
         moveForward(speed);
@@ -116,7 +122,11 @@ esp_err_t moveHandler(httpd_req_t *req) {
         turnLeft(speed);
     } else if (strcmp(direction, "right") == 0) {
         turnRight(speed);
-    } else if (strcmp(direction, "stop") == 0) {
+    } else if (strcmp(direction, "soft_left") == 0) {
+        arcLeft(speed, turn_ratio);
+    } else if (strcmp(direction, "soft_right") == 0) {
+        arcRight(speed, turn_ratio);
+    }  else if (strcmp(direction, "stop") == 0) {
         stopMotors();
     } else {
         Serial.printf("Unknown move direction in POST: [%s]\n", direction);

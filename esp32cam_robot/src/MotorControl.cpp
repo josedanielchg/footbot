@@ -120,3 +120,23 @@ void stopMotors() {
         digitalWrite(MOTOR_B_PIN1, LOW); digitalWrite(MOTOR_B_PIN2, LOW);
     #endif
 }
+
+void arcLeft(int speed, float turn_ratio) {
+    turn_ratio = constrain(turn_ratio, 0.0, 1.0);
+    int inner_wheel_speed = (int)(speed * (1.0 - turn_ratio));
+    Serial.printf("COMMAND: Arc Left, Speed: %d, InnerSpeed: %d\n", speed, inner_wheel_speed);
+    #if defined(MOTOR_A_ENABLE_PIN)
+        setMotorStateAndSpeed(MOTOR_A_PIN1, MOTOR_A_PIN2, 1, MOTOR_A_ENABLE_PIN, inner_wheel_speed); // Motor A slower
+        setMotorStateAndSpeed(MOTOR_B_PIN1, MOTOR_B_PIN2, 1, MOTOR_B_ENABLE_PIN, speed); // Motor B forward
+    #endif
+}
+
+void arcRight(int speed, float turn_ratio) {
+    turn_ratio = constrain(turn_ratio, 0.0, 1.0);
+    int inner_wheel_speed = (int)(speed * (1.0 - turn_ratio));
+    Serial.printf("COMMAND: Arc Right, Speed: %d, InnerSpeed: %d\n", speed, inner_wheel_speed);
+    #if defined(MOTOR_A_ENABLE_PIN)
+        setMotorStateAndSpeed(MOTOR_A_PIN1, MOTOR_A_PIN2, 1, MOTOR_A_ENABLE_PIN, speed); // Motor A forward
+        setMotorStateAndSpeed(MOTOR_B_PIN1, MOTOR_B_PIN2, 1, MOTOR_B_ENABLE_PIN, inner_wheel_speed); // Motor B slower
+    #endif
+}

@@ -14,11 +14,12 @@ HTTP_TIMEOUT_CONNECT = 2.0
 HTTP_TIMEOUT_READ = 1.0
 
 # --- Ball Detection Settings (Tennis Ball - Yellow/Green) ---
-# These HSV values are a starting point and WILL LIKELY NEED TUNING.
-# Use a color picker tool in HSV space to find the range for your specific tennis ball and lighting.
-LOWER_BALL_COLOR = (20, 100, 100) # Lower HSV for tennis ball yellow/green
-UPPER_BALL_COLOR = (80, 255, 255) # Upper HSV for tennis ball yellow/green
+LOWER_BALL_COLOR = (29, 100, 100) # Lower HSV for tennis ball yellow/green
+UPPER_BALL_COLOR = (49, 255, 255) # Upper HSV for tennis ball yellow/green
 MIN_BALL_CONTOUR_AREA = 100       # Minimum area to consider a contour as a ball (pixels^2)
+YOLO_MODEL_PATH = "auto_soccer_bot/models/yolo11l.pt" 
+TARGET_CLASS_NAMES = ["sports ball", "apple", "orange"] 
+DETECTION_CONFIDENCE_THRESHOLD = 0.10
 
 # --- Robot Control Logic ---
 # Defines a central target area on the screen. Values are proportions of frame width/height (0.0 to 1.0)
@@ -37,3 +38,14 @@ MAX_SPEED = 255
 # --- Command Sending ---
 COMMAND_SEND_INTERVAL_MS = 200
 MIN_TIME_BETWEEN_ANY_COMMAND_MS = 100
+
+# --- State Machine & Control Logic ---
+BALL_CAPTURED_AREA_THRESHOLD = 15000
+BALL_LOST_TIMEOUT_MS = 1000         # If ball is lost for 2s, go back to searching
+
+# Speeds and turn ratios for different states
+SEARCH_TURN_SPEED = 120
+APPROACH_SPEED = 160
+APPROACH_TURN_RATIO = 0.3  # Gentle turn ratio when approaching
+DRIBBLE_SPEED = 140
+DRIBBLE_TURN_RATIO = 0.5   # Wider turn ratio when dribbling

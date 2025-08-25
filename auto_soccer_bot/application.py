@@ -47,25 +47,25 @@ class Application:
                      await asyncio.sleep(0.01)
                      continue
 
-
             # 1. Detect the ball
-            processed_frame, ball_detection_data = self.ball_detector.process_frame(frame.copy(), draw=True)
+            processed_frame, yolo_detection = self.ball_detector.process_frame(frame.copy(), draw=True)
 
             # 2. Decide robot action based on ball position
             # ball_detection_data is (center_x, center_y, radius, area) or None
-            ball_info_for_controller = self.ball_detector.get_detection_data(ball_detection_data)
-            
-            direction_command, speed_command = self.robot_controller.decide_action(
-                ball_info_for_controller, frame_width, frame_height
+            ball_info = self.ball_detector.get_detection_data(yolo_detection)
+
+            direction_command, speed_command, turn_ratio_command = self.robot_controller.decide_action(
+                ball_info, frame_width
             )
 
             # 3. Send command to robot
             asyncio.create_task(
-                self.robot_communicator.send_command(direction_command, speed_command)
+                self.robot_communicator.send_command(direction_command, speed_command, turn_ratio_command)
             )
 
             # 4. Display visuals
             self.robot_controller.draw_target_zone(processed_frame, frame_width, frame_height)
+            self.robot_controller.draw_state_info(processed_frame)
             cv2.putText(processed_frame, f"Cmd: {direction_command} @ {speed_command}", (10, 30),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
             cv2.imshow('Auto Soccer Bot - Ball Detection', processed_frame)

@@ -10,6 +10,7 @@ class RobotCommunicator:
         self.is_request_in_flight = False
         self.last_sent_command_to_robot = None
         self.last_sent_speed_to_robot = None
+        self.last_sent_turn_ratio = None
         self.last_command_time_robot = 0
 
     async def initialize(self):
@@ -25,7 +26,7 @@ class RobotCommunicator:
             self.http_client = None
             print("RobotCommunicator (Auto): Async HTTP client closed.")
 
-    async def send_command(self, direction, speed=config.DEFAULT_ROBOT_SPEED):
+    async def send_command(self, direction, speed=config.DEFAULT_ROBOT_SPEED, turn_ratio=1.0):
         if not direction:
             return
 
@@ -39,13 +40,14 @@ class RobotCommunicator:
             return
         if (direction == self.last_sent_command_to_robot and 
             speed == self.last_sent_speed_to_robot and
+            turn_ratio == self.last_sent_turn_ratio and
             current_time_ms - self.last_command_time_robot < config.COMMAND_SEND_INTERVAL_MS):
             return
         if self.is_request_in_flight:
             return
 
         self.is_request_in_flight = True
-        payload = {"direction": direction, "speed": int(speed)}
+        payload = {"direction": direction, "speed": int(speed), "turn_ratio": float(turn_ratio)}
         json_payload_str = json.dumps(payload)
         # print(f"RobotCommunicator (Auto): Sending: {json_payload_str}") # Debug print
 
@@ -55,6 +57,7 @@ class RobotCommunicator:
             response.raise_for_status()
             self.last_sent_command_to_robot = direction
             self.last_sent_speed_to_robot = speed
+            self.last_sent_turn_ratio = turn_ratio
             self.last_command_time_robot = current_time_ms
         except httpx.ReadTimeout:
             print(f"RobotCommunicator (Auto): ReadTimeout sending command '{direction}'.")

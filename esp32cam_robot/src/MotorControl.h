@@ -11,10 +11,9 @@ void moveForward(int speed);
 void moveBackward(int speed);
 void turnLeft(int speed);
 void turnRight(int speed);
-void stopMotors();              // stopMotors typically doesn't take speed, it implies 0
+void stopMotors();
 
-// TODO: Speed control later:
-// void setSpeed(int speed); // Speed 0-255
-// void moveForward(int speed);
+void arcLeft(int speed, float turn_ratio); // turn_ratio 0.0-1.0 (0 = forward, 1 = pivot)
+void arcRight(int speed, float turn_ratio);
 
 #endif // MOTORCONTROL_H
