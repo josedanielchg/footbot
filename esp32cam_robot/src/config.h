@@ -6,8 +6,8 @@
 // WiFi Credentials
 // #define WIFI_SSID "General"
 // #define WIFI_PASSWORD "MaDu$2022"
-#define WIFI_SSID "Daniel WiFi"
-#define WIFI_PASSWORD "28324600"
+#define WIFI_SSID "General"
+#define WIFI_PASSWORD "MaDu$2022"
 
 // #define WIFI_SSID "wifimkhAP"
 // #define WIFI_PASSWORD "2832460X"
@@ -27,6 +27,5 @@
 #define MOTOR_B_PIN1 14
 #define MOTOR_B_PIN2 15
 #define MOTOR_B_ENABLE_PIN 4 // Optional, for speed control
-
 
 #endif // CONFIG_H

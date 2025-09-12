@@ -35,9 +35,6 @@ bool initCamera() {
     // Adjust config based on PSRAM
     if (config.pixel_format == PIXFORMAT_JPEG) {
         if (psramFound()) {
-            config.jpeg_quality = 10; // Can use slightly better quality
-            config.fb_count = 2;      // Use 2 buffers for smoother streaming
-            config.grab_mode = CAMERA_GRAB_LATEST;
             Serial.println("PSRAM found, optimizing camera config for streaming.");
         } else {
             // Limit frame size if no PSRAM
@@ -63,10 +60,12 @@ bool initCamera() {
 
     // Get sensor instance
     sensor_t *s = esp_camera_sensor_get();
+
     if (s == NULL) {
         Serial.println("Failed to get camera sensor.");
         return false;
     }
+    s->set_quality(s, 30);
 
      // Initial sensor settings (from original code)
     if (s->id.PID == OV3660_PID) { // Adjustments for specific sensors

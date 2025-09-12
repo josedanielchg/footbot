@@ -24,6 +24,9 @@
 #include "esp32-hal-log.h"
 #endif
 
+#define TARGET_FPS 10
+#define PERIOD_US  (1000000 / TARGET_FPS)
+
 // Enable LED FLASH setting
 #define CONFIG_LED_ILLUMINATOR_ENABLED 1
 
@@ -235,8 +238,21 @@ static esp_err_t stream_handler(httpd_req_t *req) {
   enable_led(true);
 #endif
 
+int64_t next_deadline = esp_timer_get_time();
+
   while (true) {
-    fb = esp_camera_fb_get();
+    // 1) Wait for the “tick” for 10 fps before the screanshot 
+    int64_t now = esp_timer_get_time();
+    if (now < next_deadline) {
+      ets_delay_us((uint32_t)(next_deadline - now)); // micro-sleep
+    }
+    next_deadline += PERIOD_US;
+
+    // 2) Capture and MEASURE how long ONLY the capture+compression takes
+    int64_t cap_t0 = esp_timer_get_time();
+    fb = esp_camera_fb_get();             // BLOCKS here until JPG is available (because of WHEN_EMPTY)
+    int64_t cap_t1 = esp_timer_get_time();
+
     if (!fb) {
       log_e("Camera capture failed");
       res = ESP_FAIL;
