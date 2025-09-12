@@ -6,7 +6,7 @@ VIDEO_SOURCE = 'esp32_stream' # 'webcam' or 'esp32_stream'
 WEBCAM_INDEX = 0
 
 # --- ESP32 Communication Settings
-ESP32_IP_ADDRESS = "192.168.43.2"
+ESP32_IP_ADDRESS = "192.168.1.12"
 ESP32_CONTROL_PORT = 80
 ESP32_STREAM_URL = f"http://{ESP32_IP_ADDRESS}:81/stream"
 ESP32_MOVE_ENDPOINT = f"http://{ESP32_IP_ADDRESS}:{ESP32_CONTROL_PORT}/move"
@@ -17,7 +17,7 @@ HTTP_TIMEOUT_READ = 1.0
 LOWER_BALL_COLOR = (29, 100, 100) # Lower HSV for tennis ball yellow/green
 UPPER_BALL_COLOR = (49, 255, 255) # Upper HSV for tennis ball yellow/green
 MIN_BALL_CONTOUR_AREA = 100       # Minimum area to consider a contour as a ball (pixels^2)
-YOLO_MODEL_PATH = "auto_soccer_bot/models/yolo11l.pt" 
+YOLO_MODEL_PATH = "auto_soccer_bot/models/yolo11n.pt" 
 TARGET_CLASS_NAMES = ["sports ball", "apple", "orange"] 
 DETECTION_CONFIDENCE_THRESHOLD = 0.10
 
