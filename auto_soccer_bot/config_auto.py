@@ -1,8 +1,8 @@
 # auto_soccer_bot/config_auto.py
 
 # --- Video Source ---
-# Set to 'webcam' or 'esp32_stream'
-VIDEO_SOURCE = 'esp32_stream' # 'webcam' or 'esp32_stream'
+# Set to 'webcam' or 'esp32_httpx'
+VIDEO_SOURCE = 'esp32_httpx' # 'webcam' or 'esp32_httpx'
 WEBCAM_INDEX = 0
 
 # --- ESP32 Communication Settings
