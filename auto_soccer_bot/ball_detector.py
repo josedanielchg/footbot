@@ -9,7 +9,7 @@ class BallDetector(DetectionManager):
         super().__init__()
         self.model = None
         self.class_names = []
-        self.target_class_ids = set() 
+        self.target_class_ids = set()
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
     def initialize(self):
@@ -36,9 +36,13 @@ class BallDetector(DetectionManager):
             print(f"Error loading YOLO model from {config.YOLO_MODEL_PATH}: {e}")
             return False
 
-    def process_frame(self, frame, draw=True):
+    def process_frame(self, frame):
+        """
+        Performs object detection on a frame and returns the raw detection data.
+        This is the "heavy" function that runs the model. It no longer draws on the frame.
+        """
         if frame is None or self.model is None:
-            return frame, None
+            return None
 
         # Perform detection
         results = self.model(frame, stream=True, device=self.device, verbose=False)
@@ -56,25 +60,30 @@ class BallDetector(DetectionManager):
                         # Get bounding box coordinates
                         x1, y1, x2, y2 = map(int, box.xyxy[0])
                         w, h = x2 - x1, y2 - y1
-                        area = w * h
                         
-                        # Store this detection's data
                         current_detection = {
                             "bbox": (x1, y1, w, h),
                             "confidence": conf,
-                            "area": area,
+                            "area": w * h,
                             "class_name": self.class_names[cls]
                         }
                         
-                        # We only care about the most confident "sports ball" detection
+                        # Find the detection with the highest confidence
                         if best_ball_detection is None or conf > best_ball_detection["confidence"]:
                             best_ball_detection = current_detection
 
-        # Drawing is done after finding the best detection
-        if draw and best_ball_detection:
-            x, y, w, h = best_ball_detection["bbox"]
-            conf = best_ball_detection["confidence"]
-            class_name = best_ball_detection["class_name"] # Get the detected class name
+        # Return only the detection data dictionary
+        return best_ball_detection
+
+    def draw_detection(self, frame, detection_result):
+        """
+        Draws a bounding box on a frame using a pre-existing detection result.
+        This is the "light" function that does not run the model.
+        """
+        if frame is not None and detection_result:
+            x, y, w, h = detection_result["bbox"]
+            conf = detection_result["confidence"]
+            class_name = detection_result["class_name"]
             label = f'{class_name} {conf:.2f}'
 
             cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
@@ -82,14 +91,13 @@ class BallDetector(DetectionManager):
                         (x, y - 10 if y > 20 else y + 20),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
         
-        return frame, best_ball_detection
-
+        # Return the frame with the drawing on it
+        return frame
 
     def get_detection_data(self, yolo_result):
         """
         Extracts ball center and area from the YOLO result.
-        :param yolo_result: A dictionary containing 'bbox', 'confidence', 'area' or None.
-        :return: Tuple (center_x, center_y, area) or None.
+        (This method remains unchanged)
         """
         if yolo_result:
             x, y, w, h = yolo_result["bbox"]
@@ -97,7 +105,5 @@ class BallDetector(DetectionManager):
             center_y = y + h // 2
             area = yolo_result["area"]
             
-            # The 'radius' concept is less direct with a bbox, so we return area
-            # which is better for estimating distance/closeness.
             return (center_x, center_y, area)
         return None
