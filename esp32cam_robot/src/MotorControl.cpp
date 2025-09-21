@@ -91,8 +91,8 @@ void moveBackward(int speed) {
 void turnLeft(int speed) {
     Serial.printf("COMMAND: Turn Left, Speed: %d\n", speed);
     #if defined(MOTOR_A_PIN1) && defined(MOTOR_A_PIN2) && defined(MOTOR_B_PIN1) && defined(MOTOR_B_PIN2) && defined(MOTOR_A_ENABLE_PIN) && defined(MOTOR_B_ENABLE_PIN)
-        setMotorStateAndSpeed(MOTOR_A_PIN1, MOTOR_A_PIN2, -1, MOTOR_A_ENABLE_PIN, speed); // Motor A backward
-        setMotorStateAndSpeed(MOTOR_B_PIN1, MOTOR_B_PIN2,  1, MOTOR_B_ENABLE_PIN, speed); // Motor B forward
+        setMotorStateAndSpeed(MOTOR_A_PIN1, MOTOR_A_PIN2, 1, MOTOR_A_ENABLE_PIN, speed); // Motor A backward
+        setMotorStateAndSpeed(MOTOR_B_PIN1, MOTOR_B_PIN2, -1, MOTOR_B_ENABLE_PIN, speed); // Motor B forward
     #elif defined(MOTOR_A_PIN1)
         digitalWrite(MOTOR_A_PIN1, HIGH); digitalWrite(MOTOR_A_PIN2, LOW);  // A backward
         digitalWrite(MOTOR_B_PIN1, LOW);  digitalWrite(MOTOR_B_PIN2, HIGH); // B forward
@@ -102,8 +102,8 @@ void turnLeft(int speed) {
 void turnRight(int speed) {
     Serial.printf("COMMAND: Turn Right, Speed: %d\n", speed);
     #if defined(MOTOR_A_PIN1) && defined(MOTOR_A_PIN2) && defined(MOTOR_B_PIN1) && defined(MOTOR_B_PIN2) && defined(MOTOR_A_ENABLE_PIN) && defined(MOTOR_B_ENABLE_PIN)
-        setMotorStateAndSpeed(MOTOR_A_PIN1, MOTOR_A_PIN2,  1, MOTOR_A_ENABLE_PIN, speed); // Motor A forward
-        setMotorStateAndSpeed(MOTOR_B_PIN1, MOTOR_B_PIN2, -1, MOTOR_B_ENABLE_PIN, speed); // Motor B backward
+        setMotorStateAndSpeed(MOTOR_A_PIN1, MOTOR_A_PIN2, -1, MOTOR_A_ENABLE_PIN, speed); // Motor A forward
+        setMotorStateAndSpeed(MOTOR_B_PIN1, MOTOR_B_PIN2, 1, MOTOR_B_ENABLE_PIN, speed); // Motor B backward
     #elif defined(MOTOR_A_PIN1)
         digitalWrite(MOTOR_A_PIN1, LOW);  digitalWrite(MOTOR_A_PIN2, HIGH); // A forward
         digitalWrite(MOTOR_B_PIN1, HIGH); digitalWrite(MOTOR_B_PIN2, LOW);  // B backward
