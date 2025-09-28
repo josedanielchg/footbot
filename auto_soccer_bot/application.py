@@ -1,59 +1,34 @@
 import cv2
 import asyncio
-import time
-import numpy as np # Make sure to import numpy
+
 from .camera_manager import CameraManager
 from .ball_detector import BallDetector
 from .robot_controller import RobotController
 from .robot_communicator import RobotCommunicator
+from .color_manager import ColorManager
 from . import config_auto as config
 
-def enhance_frame_colors(frame, saturation_scale=1.5, value_scale=1.2):
-    """
-    Enhances the color saturation and value of a frame to make colors more vibrant.
-    :param frame: The input frame in BGR format.
-    :param saturation_scale: Factor to scale the saturation by (e.g., 1.5 for 50% increase).
-    :param value_scale: Factor to scale the brightness by (e.g., 1.2 for 20% increase).
-    :return: The enhanced frame in BGR format.
-    """
-    if frame is None:
-        return None
-    
-    # Convert the image from BGR to HSV color space
-    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    
-    # Split the channels
-    h, s, v = cv2.split(hsv)
-
-    # Increase the saturation
-    # We multiply the saturation channel by a factor.
-    # We must then ensure the values remain in the valid 8-bit range [0, 255].
-    s = cv2.multiply(s, saturation_scale)
-    s = np.clip(s, 0, 255).astype(np.uint8)
-
-    # Optionally, increase the brightness/value as well
-    v = cv2.multiply(v, value_scale)
-    v = np.clip(v, 0, 255).astype(np.uint8)
-
-    # Merge the channels back together
-    final_hsv = cv2.merge((h, s, v))
-    
-    # Convert the HSV image back to BGR format
-    enhanced_frame = cv2.cvtColor(final_hsv, cv2.COLOR_HSV2BGR)
-    
-    return enhanced_frame
+# Optional tuner (fully isolated)
+if getattr(config, "COLOR_TUNER_ENABLED", False):
+    from .color_tuner import ColorTuner
+else:
+    ColorTuner = None
 
 
 class Application:
     def __init__(self):
         self.camera_manager = CameraManager()
-        self.ball_detector = BallDetector()
+        self.color_manager = ColorManager()
+        self.ball_detector = BallDetector(self.color_manager)
         self.robot_controller = RobotController()
         self.robot_communicator = RobotCommunicator()
+        self.color_tuner = ColorTuner(self.color_manager) if ColorTuner else None
+        self._dbg_i = 0
         self.running = False
 
     async def initialize(self):
-        if not self.camera_manager.initialize(): return False
+        if not self.camera_manager.initialize():
+            return False
         if not self.ball_detector.initialize():
             self.camera_manager.release()
             return False
@@ -63,72 +38,104 @@ class Application:
         return True
 
     async def run_main_loop(self):
-        print("Starting Automatic Ball Chasing. Press ESC in OpenCV window to quit.")
+        print("Starting Automatic Ball Chasing. Press ESC to quit.")
         print(f"Target ESP32 Endpoint: {config.ESP32_MOVE_ENDPOINT}")
 
-        # --- Frame Skipping & State Variables ---
-        frame_counter = 0
-        last_yolo_detection = None # Store the last valid detection result
-
         while self.running and self.camera_manager.is_opened():
-            raw_frame = self.camera_manager.get_frame()
-            if raw_frame is None:
+            raw = self.camera_manager.get_frame()
+            if raw is None:
                 await asyncio.sleep(0.01)
                 continue
 
-            # --- Pre-processing Steps (Color enhancement, resizing, etc.) ---
-            # TODO: For best performance, you should also resize the frame here
-            # raw_frame = cv2.resize(raw_frame, (640, 480))
+            # Optionally resize for speed:
+            # raw = cv2.resize(raw, (320, 240))
 
-            if self.camera_manager.source_type != 'webcam':
-                enhanced_frame = enhance_frame_colors(raw_frame, saturation_scale=config.SATURATION, value_scale=config.BRIGHTNESS)
-            else:
-                enhanced_frame = raw_frame
+            frame = self.color_manager.enhance_frame_colors(raw)
 
-            # The frame dimensions should be taken from the final processed frame
-            frame_height, frame_width, _ = enhanced_frame.shape
+            h, w = frame.shape[:2]
             if self.camera_manager.frame_width == 0:
-                self.camera_manager.frame_width = frame_width
-                self.camera_manager.frame_height = frame_height
+                self.camera_manager.frame_width, self.camera_manager.frame_height = w, h
 
-            frame_counter += 1
-            # We will draw on this copy of the frame
-            display_frame = enhanced_frame.copy()
+            # Main detection (YOLO cadenced; color every frame)
+            det = self.ball_detector.process_frame(frame)
 
-            # --- Frame Skipping Logic ---
-            if frame_counter % config.DETECTION_INTERVAL == 0:
-                # On a detection frame, we UNCONDITIONALLY update our memory. The result of process_frame is the new reality.
-                last_yolo_detection = self.ball_detector.process_frame(enhanced_frame)
-            
-            # Now, draw whatever is in our memory (either the new detection or None)
-            display_frame = self.ball_detector.draw_detection(display_frame, last_yolo_detection)
+            # Start display with the chosen detection
+            display = self.ball_detector.draw_detection(frame.copy(), det)
 
-            # 2. Decide robot action based on the most recent valid ball position
-            ball_info = self.ball_detector.get_detection_data(last_yolo_detection)
+            # Get components; allow stale YOLO so both overlays are always visible
+            comps = self.ball_detector.get_last_components(allow_stale=True)
 
-            direction_command, speed_command, turn_ratio_command = self.robot_controller.decide_action(
-                ball_info, frame_width
+            # Draw BOTH overlays (YOLO=green, Color=magenta)
+            display = self.ball_detector.draw_both_detections(
+                display,
+                comps.get("yolo"),
+                comps.get("color"),
+                tol_px=getattr(config, "TUNER_POSITION_TOL_PX", 20),
             )
 
-            # 3. Send command to robot
-            asyncio.create_task(
-                self.robot_communicator.send_command(direction_command, speed_command, turn_ratio_command)
-            )
+            # Optional: annotate color IoU/circularity if available (helps debug “too big” blobs)
+            cdet = comps.get("color")
+            if cdet is not None and "iou" in cdet and "circularity" in cdet:
+                bx, by, bw, bh = cdet.get("bbox", (10, 40, 0, 0))
+                cv2.putText(display, f"IoU:{cdet['iou']:.2f}  circ:{cdet['circularity']:.2f}",
+                            (bx, max(0, by - 22)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 255), 1)
 
-            # 4. Display visuals on the frame we've been drawing on
-            self.robot_controller.draw_target_zone(display_frame, frame_width, frame_height)
-            self.robot_controller.draw_state_info(display_frame)
-            cv2.putText(display_frame, f"Cmd: {direction_command} @ {speed_command}", (10, 30),
+            # Control based on the chosen detection
+            data = self.ball_detector.get_detection_data(det)
+            direction, speed, turn_ratio = self.robot_controller.decide_action(data, w)
+            asyncio.create_task(self.robot_communicator.send_command(direction, speed, turn_ratio))
+
+            # Optional tuner
+            if self.color_tuner:
+                self.color_tuner.update(frame, comps.get("yolo"), comps.get("color"))
+
+                status = self.color_tuner.get_status()
+                lo, hi = self.color_manager.get_hsv_bounds()
+                s, v = self.color_manager.get_sv_gains()
+                hud = (
+                    f"SamePlace:{status['same_place_count']}/{status['same_place_needed']}  "
+                    f"ConsecCorrect:{status['consecutive_correct']}/{status['correct_needed']}  "
+                    f"Sx:{s:.2f} Vx:{v:.2f}  "
+                    f"L:{tuple(int(x) for x in lo)} U:{tuple(int(x) for x in hi)}"
+                )
+                cv2.putText(display, hud, (10, h - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 0), 1)
+
+            # Compact console line every 10 frames (centers + distance + near)
+            self._dbg_i += 1
+            if (self._dbg_i % 10) == 0:
+                def _center_of(det_):
+                    if not det_:
+                        return None
+                    if det_.get("type") == "color":
+                        return tuple(map(int, det_["center"]))
+                    x_, y_, w_, h_ = det_["bbox"]
+                    return (int(x_ + w_ // 2), int(y_ + h_ // 2))
+
+                yc = _center_of(comps.get("yolo"))
+                cc = _center_of(comps.get("color"))
+                if yc and cc:
+                    dx, dy = cc[0] - yc[0], cc[1] - yc[1]
+                    dist = (dx * dx + dy * dy) ** 0.5
+                    near = dist <= getattr(config, "TUNER_POSITION_TOL_PX", 20)
+                else:
+                    dist, near = None, False
+                print(f"[DetCompare] used={comps.get('used')} yolo={yc} color={cc} "
+                      f"dist={None if dist is None else round(dist,1)} near={near}")
+
+            # Overlay controller info and show
+            self.robot_controller.draw_target_zone(display, w, h)
+            self.robot_controller.draw_state_info(display)
+            cv2.putText(display, f"Cmd: {direction} @ {speed}", (10, 30),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
-            cv2.imshow('Auto Soccer Bot - Ball Detection', display_frame)
-            
+            cv2.imshow('Auto Soccer Bot - Ball Detection', display)
+
             key = cv2.waitKey(5) & 0xFF
-            if key == 27:  # ESC key
+            if key == 27:
                 self.running = False
                 asyncio.create_task(self.robot_communicator.send_command("stop", 0))
                 await asyncio.sleep(0.2)
                 break
-            
+
             await asyncio.sleep(0.001)
 
     async def cleanup(self):
@@ -137,6 +144,7 @@ class Application:
         await self.robot_communicator.close()
         print("Auto Soccer Bot Application cleaned up.")
 
+
 async def start_auto_application():
     app = Application()
     if await app.initialize():
@@ -144,7 +152,6 @@ async def start_auto_application():
             await app.run_main_loop()
         except Exception as e:
             print(f"Error in auto_soccer_bot main loop: {e}")
-            import traceback
-            traceback.print_exc()
+            import traceback; traceback.print_exc()
         finally:
             await app.cleanup()
