@@ -1,4 +1,6 @@
 __pycache__/
 venv_manual_control/
 venv_auto_soccer/
+venv_auto_soccer/
+venv_opponent_detector/
 .idea/
