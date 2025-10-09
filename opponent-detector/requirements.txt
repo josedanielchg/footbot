@@ -1,0 +1,10 @@
+# Labeling
+label-studio>=1.11
+
+# Training
+ultralytics>=8.3
+opencv-python
+pyyaml
+matplotlib
+tqdm
+ipykernel
