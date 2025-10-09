@@ -95,36 +95,3 @@ python opponent-detector/main.py --project-root --model yolo11s.pt --epochs 60 -
   `opponent-detector/models/<base_model_name>/opponent_yolo.pt`
   e.g. `opponent-detector/models/yolo11s/opponent_yolo.pt`
 * Ultralytics training artifacts under `runs/detect/train*` (loss curves, mAP, etc.)
-
----
-
-## 4) Test / Inference
-
-Run **from repo root**:
-
-```bash
-python opponent-detector/test_infer.py \
-  --model opponent-detector/models/yolo11s/opponent_yolo.pt \
-  --source path/to/image_or_folder_or_video_or_camIndex \
-  --conf 0.35 \
-  --imgsz 640 \
-  --save
-```
-
-**Examples:**
-
-```bash
-# Single image
-python opponent-detector/test_infer.py --model opponent-detector/models/yolo11s/opponent_yolo.pt --source samples/img.jpg --save
-
-# Folder
-python opponent-detector/test_infer.py --model opponent-detector/models/yolo11s/opponent_yolo.pt --source samples/ --save
-
-# Video
-python opponent-detector/test_infer.py --model opponent-detector/models/yolo11s/opponent_yolo.pt --source samples/video.mp4 --save
-
-# Webcam
-python opponent-detector/test_infer.py --model opponent-detector/models/yolo11s/opponent_yolo.pt --source 0 --show
-```
-
-Outputs are saved under `opponent-detector/results/<name>`.
