@@ -128,37 +128,3 @@ python opponent-detector/test_infer.py --model opponent-detector/models/yolo11s/
 ```
 
 Outputs are saved under `opponent-detector/results/<name>`.
-
----
-
-## Recommended Layout
-
-```
-repo-root/
-├─ opponent-detector/
-│  ├─ dataset/
-│  │  ├─ train/
-│  │  │  ├─ images/
-│  │  │  └─ labels/
-│  │  ├─ validation/         # (optional; made automatically if --val-split used)
-│  │  └─ classes.txt
-│  ├─ models/
-│  │  └─ yolo11s/
-│  │     └─ opponent_yolo.pt
-│  ├─ results/               # predictions, evals
-│  ├─ main.py                # training entrypoint
-│  ├─ test_infer.py          # inference helper
-│  └─ requirements.txt
-└─ (your other project folders)
-```
-
----
-
-## Troubleshooting
-
-* **No detections / low confidence**: lower `--conf` to 0.25; verify labels; add more varied images; increase epochs.
-* **Different lighting**: consider fine-tuning with a few images from the new environment.
-* **GPU not used**: pass `--device 0` (and ensure a correct CUDA Torch is installed).
-* **Paths**: all commands assume you’re running **from the repo root**. Keep the relative paths exactly as shown.
-
-Happy training! 🧠⚙️
