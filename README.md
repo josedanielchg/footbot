@@ -24,7 +24,7 @@ This project is a **robot football player controlled by an ESP32**. It operates 
   - 🇬🇧 [Docs — EN](#)
   - 🇪🇸 [Docs — ES](docs/es/index.md)
   - 🇫🇷 [Docs — FR](docs/fr/index.md)
-- 🧭 [**How it works**](#how-it-works)
+- 🧭 [**How it works**](docs/en/how-it-works.md)
 - 🗂️ **Repository structure**
 - 🧪 **Project status**
 - 🚀 **Quick start**

@@ -24,7 +24,7 @@ Este proyecto es un **robot futbolista controlado por un ESP32**. Funciona en do
   - 🇬🇧 [Docs — EN](../../README.md)
   - 🇪🇸 [Docs — ES](#)
   - 🇫🇷 [Docs — FR](../fr/index.md)
-- 🧭 [**Cómo funciona**](#cómo-funciona)
+- 🧭 [**Cómo funciona**](how-it-works.md)
 - 🗂️ **Estructura del repositorio**
 - 🧪 **Estado del proyecto**
 - 🚀 **Inicio rápido**
