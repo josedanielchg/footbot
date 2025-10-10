@@ -8,4 +8,5 @@ opponent-detector/data_raw/
 opponent-detector/label_studio/
 opponent-detector/data.yaml
 /opponent-detector/yolo*.pt
+/opponent-detector/runs/*/*
 .idea/

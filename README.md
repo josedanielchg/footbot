@@ -1,24 +1,46 @@
-# Robot Football Project
+# Auto Soccer Bot — ESP32 Robot Footballer 🤖⚽️
 
-## Description
+[English](#-english) · [Español](docs/es/index.md) · [Français](docs/fr/index.md)
 
-This project is a robot football player controlled by an ESP32. The robot can operate in two modes: manual control and automatic mode. In manual control mode, the robot receives instructions via hand gestures detected by a webcam and sent to the ESP32. In automatic mode, the ESP32 camera streams video to a laptop that processes the images, performs object detection to locate the ball and the goal, and sends movement commands back to the robot. The robot can move forward, left, right, and backward based on these commands.
+> ESP32-powered robot that plays football in **two modes** — **manual** hand-gesture control and **automatic** ball following with on-laptop vision.
 
-## Index
+---
 
-- [Project Architecture](docs/architecture.md): Explains how the ESP32 acts as a web server, handles requests, and streams video. Also details the role of the laptop as the decision-making unit.
+## 🇬🇧 English
 
-- [Project Structure](docs/structure.md): General guide of the project folder structure
+### Introduction
+This project is a **robot football player controlled by an ESP32**. It operates in two modes:
 
-- [Chassis Design](docs/chassis_design.md): Describes the physical design and construction of the robot chassis.
+- **Manual Control** — A webcam detects **hand gestures** on the laptop; the laptop interprets the gesture and **sends commands to the ESP32** to drive the robot.
+<br>
+- **Automatic Mode** — The ESP32-CAM streams video to a laptop which performs **object detection** (ball, goal, opponent) and **sends movement commands** (forward, left, right, backward) back to the robot.
 
-- [Electronic Design](docs/electronic_design.md): Covers the electronic assembly, including motors, L298N shield, batteries, and integration with the ESP32.
+> **Current status:** We completed **ball following** (detection + decision making) and trained an **opponent detector**. We did **not** finish the **goal detector** or the **multi-object decision fusion** (opponent + goal).
 
-- [Manual Mode](docs/manual_mode.md): Explains the Python libraries used for hand gesture recognition and how manual control is implemented.
+---
 
-- [Automatic Mode](docs/automatic_mode.md): Describes the libraries and methods for object detection and color detection.
+## Table of Contents
 
-- [Results](docs/results.md): Presents the results of the project, including performance metrics and observations.
+- 📚 **Documentation (multi-language)**
+  - 🇬🇧 [Docs — EN](#)
+  - 🇪🇸 [Docs — ES](docs/es/index.md)
+  - 🇫🇷 [Docs — FR](docs/fr/index.md)
+- 🧭 [**How it works**](#how-it-works)
+- 🗂️ **Repository structure**
+- 🧪 **Project status**
+- 🚀 **Quick start**
+- ⚙️ **Components**
+  - Firmware (ESP32-CAM): [`/esp32cam_robot`](esp32cam_robot/README.md)
+  - Manual control (gestures): [`/manual_control`](manual_control/)
+  - Automatic mode (vision + control): [`/auto_soccer_bot`](auto_soccer_bot/)
+  - Opponent detector training: [`/opponent-detector`](opponent-detector/README.md)
+- 📄 **License**
 
-- [Future Improvements](docs/future_improvements.md): Discusses possible improvements and enhancements for the robot.
+---
+## How it works
 
+<p align="center">
+  <img src="docs/en/src/figure,1.png" alt="Figure 1. System Architecture" />
+</p>
+
+**Figure 1.** System architecture and data flow for the Auto Soccer Bot (ESP32) in manual and automatic modes.
