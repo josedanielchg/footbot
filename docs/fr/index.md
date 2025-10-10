@@ -12,7 +12,6 @@
 Ce projet est un **robot foot contrôlé par un ESP32**. Il fonctionne en deux modes :
 
 - **Contrôle manuel** — Une webcam sur l’ordinateur détecte les **gestes de la main** ; l’ordinateur interprète le geste et **envoie des commandes à l’ESP32** pour piloter le robot.  
-<br>
 - **Mode automatique** — L’ESP32-CAM diffuse la vidéo vers un ordinateur qui effectue la **détection d’objets** (ballon, but, adversaire) et **renvoie des commandes de mouvement** (avant, gauche, droite, arrière) au robot.
 
 > **Statut actuel :** Nous avons achevé le **suivi du ballon** (détection + prise de décision) et entraîné un **détecteur d’adversaires**. Nous **n’avons pas** finalisé le **détecteur de but** ni la **fusion décisionnelle multi-objets** (adversaire + but).
