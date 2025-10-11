@@ -26,7 +26,7 @@ Ce projet est un **robot foot contrôlé par un ESP32**. Il fonctionne en deux m
   - 🇫🇷 [Docs — FR](#)
 - 🧭 [**Fonctionnement**](how-it-works.md)
   - [ESP32-CAM robot — Architecture & Fonctionnement](esp32cam_robot.md)
-  - [Manual control — Architecture & Operation](docs/en/manual_control)
+  - [Manual control — Architecture & Operation](docs/en/manual_control.md)
 - 🗂️ [**Structure du dépôt**](repository-structure.md)
 - 🧪 **Statut du projet**
 - 🚀 **Démarrage rapide**
