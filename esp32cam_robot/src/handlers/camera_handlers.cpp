@@ -245,7 +245,6 @@ esp_err_t captureHandler(httpd_req_t *req) {
         return ESP_FAIL;
     }
 
-    // ... (Set headers, send response, return frame buffer) ...
     httpd_resp_set_type(req, "image/jpeg");
     httpd_resp_set_hdr(req, "Content-Disposition", "inline; filename=capture.jpg");
     httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
@@ -351,12 +350,7 @@ esp_err_t streamHandler(httpd_req_t *req) {
         last_frame = fr_end;
         frame_time /= 1000;
         uint32_t avg_frame_time = ra_filter_run_local(&ra_filter_stream, frame_time);
-        // Serial.printf("MJPG: %uB %ums (%.1ffps), AVG: %ums (%.1ffps)\n",
-        //     (uint32_t)(_jpg_buf_len),
-        //     (uint32_t)frame_time, 1000.0 / (uint32_t)frame_time,
-        //     avg_frame_time, 1000.0 / avg_frame_time);
-
-    } // end while(true)
+    }
 
     #if defined(LED_PIN) && LED_PIN >= 0
         setLedStreamingState(false);

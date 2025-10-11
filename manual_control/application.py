@@ -63,6 +63,7 @@ class Application:
             # 3.1 Classify gesture based on landmarks
             # --- Get Direction from Right Hand ---
             current_direction_command = "stop" # Default
+            direction_text = None 
 
             if right_hand_landmarks:
                 right_fingers_status = self.gesture_classifier.get_fingers_status(right_hand_landmarks, "Right")
@@ -70,6 +71,7 @@ class Application:
                     cmd = self.gesture_classifier.classify_gesture(right_fingers_status)
                     if cmd:
                         current_direction_command = cmd
+                        direction_text = cmd
             
             # 3.2 Calculate spped based on landmarks
             # --- Get Speed from Left Hand ---
@@ -82,6 +84,10 @@ class Application:
                 cv2.putText(processed_frame, f"Speed: {current_speed}", (10, 60),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
 
+            if direction_text is not None:
+                cv2.putText(processed_frame, f"Direction: {direction_text}", (10, 90),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
+                
             current_command = "stop" # Default to stop if no hand or specific gesture
 
             # 4. Send command to robot (if changed or needs resending based on communicator's logic)
