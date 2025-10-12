@@ -1,7 +1,7 @@
 import cv2
 import asyncio
 import time
-import numpy as np # Make sure to import numpy
+import numpy as np
 from .camera_manager import CameraManager
 from .ball_detector import BallDetector
 from .robot_controller import RobotController
@@ -27,7 +27,6 @@ def enhance_frame_colors(frame, saturation_scale=1.5, value_scale=1.2):
 
     # Increase the saturation
     # We multiply the saturation channel by a factor.
-    # We must then ensure the values remain in the valid 8-bit range [0, 255].
     s = cv2.multiply(s, saturation_scale)
     s = np.clip(s, 0, 255).astype(np.uint8)
 
@@ -77,7 +76,7 @@ class Application:
                 continue
 
             # --- Pre-processing Steps (Color enhancement, resizing, etc.) ---
-            # TODO: For best performance, you should also resize the frame here
+            # FOR TEST: For best performance, you should also resize the frame here
             # raw_frame = cv2.resize(raw_frame, (640, 480))
 
             if self.camera_manager.source_type != 'webcam':
