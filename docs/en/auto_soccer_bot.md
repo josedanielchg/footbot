@@ -107,7 +107,7 @@ Its purpose is to enable the robot to manage itself autonomously in order to sco
 - **Outcome:** **Reduced oscillation**, more deliberate transitions, and steadier approach behavior.
 
 <p align="center">
-  <img src="../src/realignment-process.png" alt="Realignment Process" />
+  <img src="../src/realignment-process.png" alt="Realignment Process" width="500px" />
 </p>
 
 **5) Command flooding of the ESP32**  

@@ -106,7 +106,7 @@ Su propósito es habilitar que el robot se gestione **de forma autónoma** para 
 - **Resultado:** **menos oscilación**, transiciones más deliberadas y aproximación más estable.
 
 <p align="center">
-  <img src="../src/realignment-process.png" alt="Proceso de realineación" />
+  <img src="../src/realignment-process.png" alt="Proceso de realineación" width="500px" />
 </p>
 
 **5) Saturación de comandos en el ESP32**  

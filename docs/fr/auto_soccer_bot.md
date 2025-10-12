@@ -106,7 +106,7 @@ Son objectif est de permettre au robot de se gérer **de manière autonome** pou
 - **Résultat :** **moins d’oscillation**, transitions plus maîtrisées, approche plus stable.
 
 <p align="center">
-  <img src="../src/realignment-process.png" alt="Processus de réalignement" />
+  <img src="../src/realignment-process.png" alt="Processus de réalignement" width="500px" />
 </p>
 
 **5) Inondation de commandes vers l’ESP32**  
