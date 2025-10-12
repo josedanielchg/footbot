@@ -4,6 +4,10 @@
 
 > Robot à base d’ESP32 qui joue au football en **deux modes** — **manuel** via gestes de la main et **automatique** avec suivi du ballon grâce à la vision sur l’ordinateur.
 
+<p align="center">
+  <img src="../src/main_photo.jpg" alt="Robot Main Photo" />
+</p>
+
 ---
 
 ## 🇫🇷 Français

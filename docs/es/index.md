@@ -4,6 +4,10 @@
 
 > Robot con ESP32 que juega al fútbol en **dos modos** — **manual** por gestos de la mano y **automático** con seguimiento del balón usando visión en el portátil.
 
+<p align="center">
+  <img src="../src/main_photo.jpg" alt="Robot Main Photo" />
+</p>
+
 ---
 
 ## 🇪🇸 Español
