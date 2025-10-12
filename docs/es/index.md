@@ -31,11 +31,6 @@ Este proyecto es un **robot futbolista controlado por un ESP32**. Funciona en do
 - 🗂️ [**Estructura del repositorio**](repository-structure.md)
 - 🧪 [**Estado del proyecto**](repository-structure.md)
 - 🚀 **Inicio rápido**
-- ⚙️ **Componentes**
-  - Firmware (ESP32-CAM): [`/esp32cam_robot`](esp32cam_robot/README.md)
-  - Control manual (gestos): [`/manual_control`](manual_control/)
-  - Modo automático (visión + control): [`/auto_soccer_bot`](auto_soccer_bot/)
-  - Entrenamiento del detector de oponentes: [`/opponent-detector`](opponent-detector/README.md)
 - 📄 **Licencia**
 
 ---
