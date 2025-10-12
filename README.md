@@ -4,6 +4,10 @@
 
 > ESP32-powered robot that plays football in **two modes** — **manual** hand-gesture control and **automatic** ball following with on-laptop vision.
 
+<p align="center">
+  <img src="docs/src/main_photo.jpg" alt="Robot Main Photo" />
+</p>
+
 ---
 
 ## 🇬🇧 English
@@ -31,11 +35,6 @@ This project is a **robot football player controlled by an ESP32**. It operates 
 - 🗂️ [**Repository structure**](docs/en/repository-structure.md)
 - 🧪 **Project status**
 - 🚀 **Quick start**
-- ⚙️ **Components**
-  - Firmware (ESP32-CAM): [`/esp32cam_robot`](esp32cam_robot/README.md)
-  - Manual control (gestures): [`/manual_control`](manual_control/)
-  - Automatic mode (vision + control): [`/auto_soccer_bot`](auto_soccer_bot/)
-  - Opponent detector training: [`/opponent-detector`](opponent-detector/README.md)
 - 📄 **License**
 
 ---
