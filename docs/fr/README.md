@@ -1,6 +1,6 @@
 # Auto Soccer Bot — Robot Foot à base d’ESP32 🤖⚽️
 
-[English](../../README.md) · [Español](../es/index.md) · [Français](#)
+[English](../../README.md) · [Español](../es/README.md) · [Français](#)
 
 > Robot à base d’ESP32 qui joue au football en **deux modes** — **manuel** via gestes de la main et **automatique** avec suivi du ballon grâce à la vision sur l’ordinateur.
 

@@ -1,6 +1,6 @@
 # Auto Soccer Bot — ESP32 Robot Footballer 🤖⚽️
 
-[English](#-english) · [Español](docs/es/index.md) · [Français](docs/fr/index.md)
+[English](#-english) · [Español](docs/es/README.md) · [Français](docs/fr/README.md)
 
 > ESP32-powered robot that plays football in **two modes** — **manual** hand-gesture control and **automatic** ball following with on-laptop vision.
 
@@ -35,6 +35,7 @@ This project is a **robot football player controlled by an ESP32**. It operates 
   - [Opponent detector — Architecture & Operation](docs/en/opponent-detector.md)
   - [API & Communication Protocols](docs/en/api-communication-protocols.md)
 - 🗂️ [**Repository structure**](docs/en/repository-structure.md)
+- 🔧 [**Hardware & Power — Electronics & Wiring Guide**](docs/en/hardware-power.md)
 - 🧪 **Project status**
 - 🚀 **Quick start**
 - 📄 **License**
