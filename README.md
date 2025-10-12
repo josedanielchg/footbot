@@ -26,8 +26,8 @@ This project is a **robot football player controlled by an ESP32**. It operates 
 
 - 📚 **Documentation (multi-language)**
   - 🇬🇧 [Docs — EN](#)
-  - 🇪🇸 [Docs — ES](docs/es/index.md)
-  - 🇫🇷 [Docs — FR](docs/fr/index.md)
+  - 🇪🇸 [Docs — ES](docs/es/README.md)
+  - 🇫🇷 [Docs — FR](docs/fr/README.md)
 - 🧭 [**How it works**](docs/en/how-it-works.md)
   - [ESP32-CAM robot — Architecture & Operation](docs/en/esp32cam_robot.md)
   - [Manual control — Architecture & Operation](docs/en/manual_control.md)
