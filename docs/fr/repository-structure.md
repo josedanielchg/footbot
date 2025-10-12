@@ -2,6 +2,7 @@
 
 Le code est organisé en **quatre modules de haut niveau**, chacun responsable d’une partie du système. La documentation se trouve dans `docs/`; des guides détaillés par module suivent dans les sections ultérieures.
 
+---
 ### Modules de haut niveau
 
 - **`esp32cam_robot/` — Micrologiciel embarqué (sur le robot)**

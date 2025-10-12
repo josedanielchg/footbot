@@ -1,4 +1,5 @@
 ## Modo automático (`auto_soccer_bot/`) — Arquitectura y operación
+---
 
 ### Índice
 - [Qué hace este módulo](#qué-hace-este-módulo)
@@ -9,6 +10,7 @@
 - [Estructura de carpetas (alto nivel)](#estructura-de-carpetas-alto-nivel)
 - [Responsabilidades de archivos (resumen)](#responsabilidades-de-archivos-resumen)
 - [Instalación](#instalación)
+---
 
 ### Qué hace este módulo
 Su propósito es habilitar que el robot se gestione **de forma autónoma** para marcar goles, identificar oponentes en el campo y operar como parte de un sistema multi-robot. Cada robot es autónomo y puede detectar y seguir la pelota, llevarla a la portería y reconocer oponentes.

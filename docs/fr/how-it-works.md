@@ -2,6 +2,8 @@
 
 Cette section décrit le flux de données et les boucles de contrôle pour le **Contrôle manuel** et le **Mode automatique**, résumés dans la **Figure 1**. L’architecture suit le cycle **percevoir → interpréter → commander → agir**, où l’**ordinateur portable** assure la perception et la décision, et l’**ESP32** exécute l’actionnement bas niveau.
 
+---
+
 ### 1) Contrôle manuel (téléopération par gestes)
 
 **Objectif.** Permettre à l’utilisateur de piloter le robot via des gestes de la main captés par la webcam du portable.

@@ -1,4 +1,5 @@
 ## ESP32-CAM robot (`esp32cam_robot/`) — Arquitectura y Operación
+---
 
 ### Qué hace este módulo
 La ESP32-CAM ejecuta un **servidor web local** para que el portátil se conecte por **Wi-Fi** y pueda:

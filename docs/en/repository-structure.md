@@ -2,6 +2,8 @@
 
 The codebase is split into **four top-level modules**, each owning a distinct part of the system. Documentation lives in `docs/` and deeper, per-module guides follow in later sections.
 
+---
+
 ### Top-level modules
 
 - **`esp32cam_robot/` — Embedded firmware (on-robot)**

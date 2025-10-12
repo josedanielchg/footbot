@@ -2,6 +2,8 @@
 
 El código se divide en **cuatro módulos de nivel superior**, cada uno responsable de una parte del sistema. La documentación está en `docs/`, y las guías detalladas por módulo aparecen en secciones posteriores.
 
+---
+
 ### Módulos de nivel superior
 
 - **`esp32cam_robot/` — Firmware embebido (en el robot)**

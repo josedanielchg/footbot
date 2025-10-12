@@ -1,6 +1,6 @@
 ## Automatic mode (`auto_soccer_bot/`) — Architecture & Operation
-
-### Index
+---
+### Table of contents
 - [What this module does](#what-this-module-does)
 - [Pipeline](#pipeline)
 - [Languages & runtime](#languages--runtime)

@@ -1,6 +1,7 @@
 ## Cómo funciona
 
 Esta sección describe el flujo de datos y los bucles de control para **Control manual** y **Modo automático**, tal como se resume en la **Figura 1**. El sistema sigue un ciclo **sensar → interpretar → ordenar → actuar**, donde el **portátil** ejecuta percepción y toma de decisiones, y el **ESP32** resuelve la actuación de bajo nivel.
+---
 
 ### 1) Control manual (teleoperación por gestos)
 

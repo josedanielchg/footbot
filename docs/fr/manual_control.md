@@ -1,4 +1,5 @@
 ## Contrôle manuel (`manual_control/`) — Architecture & Fonctionnement
+---
 
 ### Sommaire
 - [Ce que fait ce module](#ce-que-fait-ce-module)

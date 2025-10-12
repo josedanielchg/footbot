@@ -1,5 +1,5 @@
 ## ESP32-CAM robot (`esp32cam_robot/`) — Architecture & Operation
-
+---
 ### What this module does
 The ESP32-CAM hosts a **local web server** so the laptop can **connect over Wi-Fi** to:
 - **Send drive commands** (move/turn/stop) via HTTP.

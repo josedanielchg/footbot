@@ -1,4 +1,5 @@
 ## Manual control (`manual_control/`) — Architecture & Operation
+---
 
 ### Index
 - [What this module does](#what-this-module-does)
@@ -8,6 +9,7 @@
 - [File responsibilities (summary)](#file-responsibilities-summary)
 - [Installation](#installation)
 - [Hand commands — gesture → command map](#hand-commands--gesture--command-map)
+---
 
 ### What this module does
 This host-side module implements **gesture-driven teleoperation**. A laptop webcam provides frames that are processed to detect **hand landmarks** (MediaPipe). The **right** hand encodes **direction** (forward/left/right/backward/stop), and the **left** hand controls **speed** (thumb–index distance). Commands are packaged as JSON and sent over **HTTP** to the ESP32 endpoint `/move`. The loop is asynchronous and **rate-limited** to avoid flooding the robot.

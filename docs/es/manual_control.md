@@ -1,4 +1,5 @@
 ## Control manual (`manual_control/`) — Arquitectura y Operación
+---
 
 ### Índice
 - [Qué hace este módulo](#qué-hace-este-módulo)
@@ -8,6 +9,7 @@
 - [Responsabilidades de archivos (resumen)](#responsabilidades-de-archivos-resumen)
 - [Instalación](#instalación)
 - [Comandos de mano — mapa gesto → comando](#comandos-de-mano--mapa-gesto--comando)
+---
 
 ### Qué hace este módulo
 Este módulo del lado del portátil implementa la **teleoperación por gestos**. La webcam del portátil provee *frames* que se procesan para detectar **puntos de referencia de la mano** (MediaPipe). La **mano derecha** define la **dirección** (adelante/izquierda/derecha/atrás/stop) y la **mano izquierda** controla la **velocidad** (distancia pulgar–índice). Los comandos se empaquetan como JSON y se envían por **HTTP** al endpoint `/move` del ESP32. El bucle es asíncrono y con **limitación de tasa** para no saturar al robot.
