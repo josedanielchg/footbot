@@ -1,0 +1,20 @@
+# Labeling
+label-studio>=1.11
+
+# Training (pin for reproducibility)
+ultralytics==8.3
+opencv-python
+pyyaml
+tqdm
+
+# Plotting stack pinned to NumPy 1.x ABI (avoids the NumPy 2 clash)
+numpy==1.26.4
+matplotlib==3.8.4
+
+# Notebook
+ipykernel
+notebook  
+
+torch
+torchvision 
+torchaudio                                                      

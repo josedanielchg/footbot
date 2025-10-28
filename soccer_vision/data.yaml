@@ -1,0 +1,7 @@
+path: Z:\Proyectos\Robotica\footbot\soccer_vision\dataset
+train: train/images
+val: val/images
+nc: 2
+names:
+- goal
+- opponent
