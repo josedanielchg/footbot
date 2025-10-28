@@ -10,3 +10,7 @@ opponent-detector/data.yaml
 /opponent-detector/yolo*.pt
 /opponent-detector/runs/*/*
 .idea/
+weights/
+models/
+test_data/
+dataset/
