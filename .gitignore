@@ -16,4 +16,4 @@ test_data/
 dataset/
 .venv/
 label_studio/
-yolov*.pt
+yolo*.pt
