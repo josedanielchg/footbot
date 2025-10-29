@@ -17,3 +17,4 @@ dataset/
 .venv/
 label_studio/
 yolo*.pt
+runs/
