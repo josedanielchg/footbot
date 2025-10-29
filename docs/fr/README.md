@@ -32,6 +32,7 @@ Ce projet est un **robot foot contrôlé par un ESP32**. Il fonctionne en deux m
   - [ESP32-CAM robot — Architecture & Fonctionnement](esp32cam_robot.md)
   - [Contrôle manuel — Architecture & Fonctionnement](manual_control.md)
   - [Mode automatique — Architecture et fonctionnement](auto_soccer_bot.md)
+  - [Soccer Vision — Architecture et fonctionnement](soccer_vision.md)
   - [API et Protocoles de Communication](api-communication-protocols.md)
 - 🗂️ [**Structure du dépôt**](repository-structure.md)
 - 🧪 **Statut du projet**
