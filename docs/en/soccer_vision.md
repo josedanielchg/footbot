@@ -214,7 +214,7 @@ print("Ultralytics:", ultralytics.__version__)
 </tr>
 <tr>
   <td align="center" colspan="2">
-    <img src="../../soccer_vision/results/results.png" width="300"><br>
+    <img src="../../soccer_vision/results/results.png" width="600"><br>
     <sub><b>Training Curves Grid</b><br>
     Losses trend down; val precision/recall and mAP rise → healthy learning without divergence.</sub>
   </td>
