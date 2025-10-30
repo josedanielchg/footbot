@@ -39,7 +39,7 @@ Este proyecto es un **robot futbolista controlado por un ESP32**. Funciona en do
 - 🧪 [**Estado del proyecto**](project_status.md)
 - 🚀 [**Inicio rápido**](quick_start.md)
 - 🎯 [**Conclusión, Resultados y Desafíos**](conclusion.md)
-- 📄 **Licencia**
+- 📄 [**License: MIT license**](../../LICENSE)
 
 ---
 

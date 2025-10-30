@@ -39,7 +39,8 @@ Ce projet est un **robot foot contrôlé par un ESP32**. Il fonctionne en deux m
 - 🧪 [**Statut du projet**](project_status.md)
 - 🚀 [**Démarrage rapide**](quick_start.md)
 - 🎯 [**Conclusion, Résultats & Défis**](conclusion.md)
-- 📄 **Licence**
+- 📄 [**License: MIT license**](../../LICENSE)
+
 
 ---
 

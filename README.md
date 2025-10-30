@@ -36,10 +36,10 @@ This project is a **robot football player controlled by an ESP32**. It operates 
   - [API & Communication Protocols](docs/en/api-communication-protocols.md)
 - 🗂️ [**Repository structure**](docs/en/repository-structure.md)
 - 🔌 [**Hardware & Power — Electronics & Wiring Guide**](docs/en/hardware-power.md)
-- 🧪 **Project status**
+- 🧪 [**Project status**](docs/en/project_status.md)
 - 🚀 [**Quick start**](docs/en/quick_start.md)
 - 🎯 [**Conclusion, Results & Challenges**](docs/en/conclusion.md)
-- 📄 **License**
+- 📄 [**License: MIT license**](LICENSE)
 
 ---
 ## How it works
