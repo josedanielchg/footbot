@@ -200,7 +200,7 @@ El firmware está escrito en C++ sobre Arduino core para ESP32 y \texttt{esp\_ht
 \end{verbatim}
 Responde \texttt{200 OK} con un pequeño ack en JSON; cargas inválidas devuelven \texttt{400}.
 \end{itemize}
-\bigskip
+\smallskip
 \paragraph*{Actuación.}
 \texttt{MotorControl.h/.cpp} abstrae el control diferencial usando PWM LEDC del ESP32 y pines de dirección del L298N. Llamadas de alto nivel (\texttt{moveForward()}, \texttt{turnLeft()}, \texttt{stopMotors()}) limitan internamente el duty, aplican \emph{deadband} calibrado y traducen \texttt{turn\_ratio} a velocidades asimétricas de ruedas para giros suaves.
 
