@@ -1,0 +1,424 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\begin{document}
+
+% --- 1. TÍTULO ---
+\title{Diseño de un robot futbolista de control híbrido usando un ESP32 y visión por computador en un portátil}
+
+% --- 2. AUTORES ---
+\author{\IEEEauthorblockN{Chacón Gómez. José Daniel}
+\IEEEauthorblockA{\textit{Estudiante de Ingeniería en Informática} \\
+\textit{Universidad Nacional Experimental del Táchira (UNET)}\\
+San Cristóbal, Táchira, Venezuela \\
+josedaniel.chacon@unet.edu.ve}
+\and
+\IEEEauthorblockN{Castillo Gimenez. Alba Patricia}
+\IEEEauthorblockA{\textit{Estudiante de Ingeniería Mecánica} \\
+\textit{Universidad Nacional Experimental del Táchira (UNET)}\\
+San Cristóbal, Táchira, Venezuela \\
+alba.castillo@unet.edu.ve}
+}
+
+\maketitle
+
+% --- 3. RESUMEN ---
+\begin{abstract}
+Este artículo presenta el \emph{Auto Soccer Bot}, un robot móvil de bajo costo para tareas de fútbol robótico construido alrededor de un ESP32-CAM y una pila de percepción ejecutada en un portátil. El sistema sigue un paradigma de control híbrido con dos modos: (i) teleoperación manual impulsada por gestos de mano basados en visión (MediaPipe) y (ii) un modo automático en el que el ESP32-CAM transmite video MJPEG por Wi-Fi a una aplicación en el host que realiza detección híbrida del balón (umbrales de color HSV más YOLO) y alimenta una máquina de estados finitos (FSM) para el control. Todos los comandos se transportan a través de una API HTTP (control) desacoplada del servicio de transmisión MJPEG. La arquitectura enfatiza baja latencia mediante retención del último frame y envío de comandos con limitación de tasa y desduplicación. Además del detector de balón en vivo, entrenamos y validamos modelos YOLOv11 para las clases \texttt{goal} y \texttt{opponent} (mAP@0.5 de validación = 0.991), que aún no están integrados en la máquina de estados del modo automático. Detallamos el hardware, el firmware y el software del host, y reportamos el estado actual del proyecto: control manual robusto y seguimiento fiable del balón en el lazo automático, dejando la fusión de decisiones multiobjeto para integración futura.
+\end{abstract}
+
+% --- 4. PALABRAS CLAVE ---
+\begin{IEEEkeywords}
+Robótica móvil, ESP32-CAM, Visión por computador, HTTP, Teleoperación, Control por gestos de la mano, Detección de objetos, YOLO
+\end{IEEEkeywords}
+
+% --- 5. INTRODUCCIÓN ---
+\section{Introducción}
+La robótica móvil autónoma—y el fútbol robótico en particular—ofrece un entorno compacto para integrar percepción, decisión y control. Un reto persistente es habilitar percepción visual avanzada en plataformas de bajo costo sin sobrecargar el microcontrolador a bordo.
+
+Muchos robots educativos implementan una autonomía sencilla (p.\,ej., seguidor de línea) o control remoto básico. Rara vez combinan (i) teleoperación intuitiva, (ii) autonomía con visión en el lazo y (iii) una separación limpia entre percepción de alto nivel y actuación de bajo nivel en hardware restringido.
+
+Este trabajo introduce el \emph{Auto Soccer Bot}, que acopla un robot ESP32-CAM de bajo costo con una pila de percepción y decisión en portátil. El diseño distribuido descarga la visión intensiva en cómputo al portátil, mientras el ESP32 se enfoca en transmisión en tiempo real y control de motores. El sistema ofrece dos modos: uno manual por gestos (MediaPipe) y otro automático que ingiere el flujo MJPEG del ESP32-CAM y ejecuta un detector híbrido (HSV + YOLO) dentro de un controlador de estados finitos para seguir el balón. La comunicación usa una API HTTP simple en red local, desacoplando el plano de control del flujo de video.
+
+\textbf{Estado de implementación.} La teleoperación manual es robusta y en tiempo real; el modo automático logra seguimiento fiable del balón. Más allá del detector en vivo, se entrenaron y validaron modelos YOLOv11 para \texttt{goal} y \texttt{opponent} (mAP@0.5 = 0.991 en validación), pero aún no se conectan a la máquina de estados del modo automático; la fusión de decisiones multiobjeto queda para trabajo futuro.
+
+\textbf{Contribuciones.} Este trabajo ofrece: (i) una arquitectura híbrida teleoperación/autonomía de bajo costo sobre ESP32-CAM; (ii) ingesta MJPEG de baja latencia con retención del último frame y transporte HTTP resiliente; (iii) una tubería de percepción HSV+YOLO integrada con una FSM para seguimiento del balón; y (iv) detectores entrenados y validados para \texttt{goal} y \texttt{opponent} para habilitar comportamientos multiobjeto.
+
+\textbf{Estructura del artículo.} La Sección~\ref{sec:related} revisa trabajos relacionados. La Sección~\ref{sec:arch} presenta la arquitectura y el esquema de comunicación. La Sección~\ref{sec:hardware} detalla el hardware. La Sección~\ref{sec:software} describe el firmware y las aplicaciones del host. La Sección~\ref{sec:results} reporta experimentos, y la Sección~\ref{sec:conclusion} concluye.
+
+% --- TRABAJOS RELACIONADOS ---
+\section{Trabajos Relacionados}
+\label{sec:related}
+
+El diseño del Auto Soccer Bot se apoya en paradigmas consolidados de robótica móvil. La elección central—descargar cómputo desde un robot restringido hacia una estación base más potente—es una estrategia bien documentada para crear sistemas autónomos efectivos y de bajo costo \cite{offloading}. En este modelo, el robot actúa como plataforma móvil de sensores y actuadores, transmitiendo datos crudos o mínimamente procesados por un enlace inalámbrico a un host que realiza tareas intensivas como decisión basada en IA y procesamiento de video \cite{offloading, esp32_offload}. Este enfoque, prototipado en sistemas como la plataforma de búsqueda y rescate “SAVIOUR” \cite{offloading}, permite usar microcontroladores económicos como el ESP32-CAM, que sobresalen en transmisión de video pero no pueden ejecutar localmente modelos de visión complejos \cite{esp32_offload}.
+
+Para la toma de decisiones autónoma, especialmente en entornos dinámicos como el fútbol robótico, las máquinas de estados finitos (FSM) son una herramienta probada y ampliamente usada \cite{fsm_soccer, fsm_soccer2}. Las FSM proporcionan una forma transparente y manejable de estructurar el comportamiento del robot, definiendo estados como \texttt{APPROACH\_BALL} o \texttt{DRIBBLE\_TOWARDS\_GOAL} y las condiciones sensoriales que disparan transiciones \cite{fsm_soccer}. Los sistemas de percepción que alimentan estas FSM suelen emplear estrategias híbridas. Aunque modelos de aprendizaje profundo como YOLO \cite{yolo} brindan detección robusta de objetos, pueden fusionarse con métodos más rápidos y simples para mejorar el desempeño en tiempo real. Combinar un detector primario con un algoritmo de seguimiento secundario, como un filtro de partículas o un rastreador por color, crea un sistema más resiliente frente a fallos momentáneos u oclusiones \cite{hybrid_vision}.
+
+En interacción humano–robot, el control por gestos basado en visión ha emergido como una alternativa intuitiva y de bajo costo a interfaces físicas \cite{gesture_hri}. Marcos como MediaPipe de Google han acelerado esta tendencia al proporcionar detección en tiempo real de puntos de referencia de la mano desde una cámara 2D estándar \cite{mediapipe, gesture_mediapipe}. Esto permite mapear poses específicas (p.\,ej., puño cerrado) o movimientos continuos a comandos del robot, creando una experiencia de teleoperación natural y accesible sin hardware especializado \cite{gesture_hri}.
+
+% --- 6. ARQUITECTURA DEL SISTEMA ---
+\section{Arquitectura del Sistema}
+\label{sec:arch}
+
+El sistema (Fig.~\ref{fig:arch}) es una arquitectura distribuida con dos agentes principales: el \textbf{robot ESP32} y el \textbf{host portátil}. Las tareas intensivas (visión y lógica de decisión) se ejecutan en el portátil, mientras el ESP32 se centra en transmisión de video y actuación de bajo nivel. Hay dos bucles de control—seleccionados ejecutando la aplicación Python correspondiente en el host.
+
+\begin{figure}[htbp]
+\centerline{\includegraphics[width=\columnwidth]{figure1_es.png}}
+\caption{Arquitectura del sistema y flujo de datos para modos manual y automático.}
+\label{fig:arch}
+\end{figure}
+
+\subsection{Modo de Control Manual}
+En modo manual, el flujo de datos se origina en la webcam del portátil y alimenta un lazo gesto→comando:
+\begin{enumerate}
+    \item \textbf{Sensado:} Una webcam captura frames RGB del usuario.
+    \item \textbf{Percepción:} Una aplicación Python (MediaPipe Hands) detecta puntos de referencia de la mano y clasifica el gesto de la mano derecha en comandos discretos (p.\,ej., \texttt{forward}, \texttt{left}, \texttt{stop}); la distancia pulgar–índice de la mano izquierda se mapea a la velocidad.
+    \item \textbf{Decisión/Codificación:} La intención clasificada se mapea a primitivas de movimiento y se serializa como JSON.
+    \item \textbf{Actuación:} El comando se envía vía HTTP \texttt{POST} al endpoint \texttt{/move} del robot ESP32. El firmware analiza la carga y actualiza PWM y dirección de motores.
+\end{enumerate}
+
+\subsection{Modo Automático}
+En modo automático, el flujo de datos se origina en el ESP32-CAM a bordo:
+\begin{enumerate}
+    \item \textbf{Sensado:} El ESP32-CAM transmite MJPEG por Wi-Fi a resolución $\mathrm{QVGA}$ ($320 \times 240$) desde un servidor dedicado.
+    \item \textbf{Percepción:} Una aplicación en el host se suscribe al flujo y realiza detección \emph{híbrida} del balón: umbral HSV rápido en cada frame, complementado con un detector YOLO cada $N$ frames. (Los modelos YOLOv11 para \texttt{goal} y \texttt{opponent} están entrenados y validados, pero aún no integrados en el lazo en vivo.)
+    \item \textbf{Decisión:} La pose del balón alimenta una FSM que selecciona acciones como \texttt{SEARCHING} y \texttt{APPROACHING} para centrarlo y avanzar hacia él.
+    \item \textbf{Actuación:} La acción elegida se serializa como JSON y se emite a \texttt{/move} vía HTTP \texttt{POST}.
+\end{enumerate}
+
+\subsection{Protocolo de Comunicación}
+La comunicación host–robot usa HTTP en una red Wi-Fi local. El firmware del ESP32 aloja dos servidores HTTP independientes:
+\begin{itemize}
+    \item \textbf{Servidor de control (puerto 80):} Atiende peticiones no-streaming y expone \texttt{/}, \texttt{/status}, \texttt{/control}, \texttt{/capture} y el endpoint de movimiento \texttt{/move} (acepta \texttt{application/json}, p.\,ej., \texttt{\{"direction":"forward","speed":150\}}).
+    \item \textbf{Servidor de streaming (puerto 81):} Sirve \texttt{/stream} como MJPEG usando \texttt{multipart/x-mixed-replace}.
+\end{itemize}
+Este diseño aísla el plano de control del camino de video de alto ancho de banda, minimizando la latencia de comandos. En el host, la retención del último frame y los envíos con limitación de tasa y desduplicación reducen el retardo extremo a extremo y evitan saturar el microcontrolador.
+
+\medskip
+\noindent\textit{Nota:} La arquitectura está intencionalmente desacoplada para que detectores adicionales (p.\,ej., \texttt{goal}, \texttt{opponent}) puedan cablearse en la capa de percepción y fusionarse en la FSM sin modificar el firmware.
+
+% --- 7. IMPLEMENTACIÓN DE HARDWARE ---
+\section{Implementación de Hardware}
+\label{sec:hardware}
+
+El robot usa piezas comerciales de bajo costo. Un ESP32-CAM maneja sensado y red, mientras un L298N (doble puente H) proporciona potencia a motores y adaptación de niveles. La Tabla~\ref{tab:hardware} lista los componentes principales.
+
+\renewcommand{\arraystretch}{1.08}
+\begin{table}[htbp]
+\caption{Componentes clave de hardware}
+\begin{center}
+\begin{tabular}{|p{0.39\linewidth}|p{0.52\linewidth}|}
+\hline
+\textbf{Componente} & \textbf{Función principal} \\
+\hline
+ESP32\mbox{-}CAM (AI-Thinker) & Cámara + Wi\mbox{-}Fi; aloja servidores HTTP; emite señales de control al driver de motor \\
+\hline
+L298N Doble puente H    & Acciona dos motores DC; distribuye potencia (raíl lógico de 5~V) \\
+\hline
+Motores DC con caja (2x) & Locomoción por tracción diferencial \\
+\hline
+Batería (2S, 2\,$\times$\,3.3~V) & Alimentación del sistema (VIN del L298N), interruptor maestro en serie \\
+\hline
+Chasis del robot & Estructura \\
+\hline
+\end{tabular}
+\label{tab:hardware}
+\end{center}
+\end{table}
+
+\subsection{Controlador principal y driver de motor}
+
+\textbf{ESP32-CAM:}
+El módulo AI-Thinker ESP32-CAM se alimenta del raíl de 5~V y expone dos servidores HTTP (control y streaming). Sus GPIO son de \emph{lógica 3.3~V}, suficiente para excitar entradas del L298N (umbral alto típico $\approx$2.3~V). El módulo captura video, sirve endpoints y emite PWM/señales lógicas para la actuación vía el driver.
+
+\textbf{Driver L298N:}
+El L298N recibe la batería en serie en \texttt{VIN} (a menudo “+12V”) para alimentar los puentes H. En nuestro montaje \emph{mantenemos} el regulador de 5~V a bordo (jumper \texttt{5V-EN} instalado) y usamos el pin \texttt{+5V} para alimentar tanto la lógica del L298N como el pin de 5~V del ESP32-CAM (ver Fig.~\ref{fig:wiring}). Con un pack 2S de dos celdas de 3.3~V ($\approx 6.6$~V nominal) este regulador opera cerca de su dropout; funcionó de forma fiable en pruebas, aunque con margen limitado ante transitorios de motor.
+
+\noindent\emph{Alternativa robusta (opcional):} Si se observan brownouts o reinicios de la cámara, retire \texttt{5V-EN} y alimente tanto el pin \texttt{+5V} del L298N como el ESP32-CAM desde un módulo DC–DC de 5~V ($\geq$\,1~A), manteniendo tierras comunes.
+
+\subsection{Alimentación y actuación}
+
+La plataforma usa tracción diferencial con dos motores DC.
+
+\begin{itemize}
+    \item \textbf{Motores DC:} Dos motores de 6~V se accionan desde el L298N. La dirección se fija con \texttt{IN1--IN4}; la velocidad usa PWM en \texttt{ENA/ENB} (LEDC del ESP32). Un PWM en rango kHz bajo–medio evita ruido audible y respeta límites del L298N.
+    \item \textbf{Sistema de potencia:} Dos celdas de 3.3~V en serie (2S, $\approx$6.6~V) alimentan \texttt{VIN} del L298N a través de un interruptor maestro (SW1). Con \texttt{5V-EN} instalado, el regulador a bordo del L298N provee el raíl \texttt{+5V} usado por la lógica del L298N y el pin de 5~V del ESP32-CAM. Todas las tierras (batería, L298N, ESP32-CAM) son comunes.
+\end{itemize}
+
+Un diagrama de cableado consistente con esta configuración se muestra en la Fig.~\ref{fig:wiring}.
+
+\begin{figure}[htbp]
+\centerline{\includegraphics[width=\columnwidth]{wiring_diagram.jpeg}}
+\caption{Diagrama: batería 2S (2\,$\times$\,3.3~V) a \texttt{VIN} del L298N, \texttt{5V-EN} instalado y \texttt{+5V} alimentando el ESP32-CAM. Salidas de motor en \texttt{OUT1/OUT2} y \texttt{OUT3/OUT4}; líneas de control conectan GPIO del ESP32-CAM a \texttt{IN1--IN4} y \texttt{ENA/ENB}.}
+\label{fig:wiring}
+\end{figure}
+
+% --- 8. IMPLEMENTACIÓN DE SOFTWARE ---
+\section{Implementación de Software}
+\label{sec:software}
+
+La funcionalidad se divide entre el firmware en el robot (ESP32-CAM) y módulos Python en el host. El firmware provee E/S en tiempo real y una pequeña API HTTP; el host realiza percepción y toma de decisiones. Todos los módulos del host usan entornos virtuales aislados y archivos de configuración (\texttt{manual\_control/config.py}, \texttt{auto\_soccer\_bot/config\_auto.py}) para reproducibilidad.
+
+\subsection{Firmware del ESP32}
+\label{sec:software:esp32}
+
+El firmware está escrito en C++ sobre Arduino core para ESP32 y \texttt{esp\_http\_server} del ESP-IDF. Al arrancar, inicializa GPIO (enable/dirección de motores), la cámara (\emph{QVGA}, calidad JPEG~30), se une a Wi-Fi (modo estación) y luego inicia dos servidores HTTP.
+
+\paragraph*{Diseño de doble servidor} (dentro de \texttt{esp32cam\_robot}): \texttt{WebServerManager.h/.cpp} y \texttt{WebRequestHandlers.h/.cpp}:
+\begin{itemize}
+    \item \textbf{Control (puerto 80):} rutas \texttt{/}, \texttt{/status}, \texttt{/control}, \texttt{/capture}, \texttt{/move}.
+    \item \textbf{Streaming (puerto 81):} ruta \texttt{/stream} (MJPEG, \texttt{multipart/x-mixed-replace}).
+\end{itemize}
+
+\paragraph*{Endpoints (esquema/semántica).}
+\begin{itemize}
+    \item \texttt{GET /status} $\rightarrow$ JSON con heap, estimación de FPS, RSSI de Wi-Fi y estado de GPIO.
+    \item \texttt{GET /control?var=\emph{name}\&val=\emph{int}} $\rightarrow$ ajusta parámetros de cámara (framesize, quality, brightness, etc.).
+    \item \texttt{GET /capture} $\rightarrow$ frame JPEG único.
+    \item \texttt{GET /stream} $\rightarrow$ MJPEG continuo con límite explícito; cada parte carga un JPEG.
+    \item \texttt{POST /move} (JSON) $\rightarrow$ comando de movimiento:
+\begin{verbatim}
+{ 
+    "direction": "
+        forward|
+        backward|
+        left|
+        right|
+        soft_left|
+        soft_right|
+        stop",
+  "speed": 0..255,
+  "turn_ratio": 0.0..1.0 (optional)
+}
+\end{verbatim}
+Responde \texttt{200 OK} con un pequeño ack en JSON; cargas inválidas devuelven \texttt{400}.
+\end{itemize}
+\bigskip
+\paragraph*{Actuación.}
+\texttt{MotorControl.h/.cpp} abstrae el control diferencial usando PWM LEDC del ESP32 y pines de dirección del L298N. Llamadas de alto nivel (\texttt{moveForward()}, \texttt{turnLeft()}, \texttt{stopMotors()}) limitan internamente el duty, aplican \emph{deadband} calibrado y traducen \texttt{turn\_ratio} a velocidades asimétricas de ruedas para giros suaves.
+
+\subsection{Aplicación en el host: Control Manual}
+\label{sec:software:manual}
+
+El módulo de teleoperación (\texttt{manual\_control/}) implementa control por gestos con una webcam del portátil.
+
+\paragraph*{Flujo (sensar $\rightarrow$ interpretar $\rightarrow$ comandar).}
+\begin{enumerate}
+    \item \textbf{Sensado} (\texttt{camera\_manager.py}): captura frames vía OpenCV con apertura/cierre seguro y \emph{throttling} de FPS.
+    \item \textbf{Percepción} (\texttt{hand\_detector.py}): MediaPipe Hands devuelve 21 puntos y lateralidad; los frames se espejan (selfie view) y convierten a RGB.
+    \item \textbf{Clasificación} (\texttt{gesture\_classifier.py}): la mano derecha codifica la dirección discreta (lógica fingertip–MCP); la distancia pulgar–índice de la mano izquierda (normalizada) se mapea a velocidad en \([0, 255]\).
+    \item \textbf{Actuación} (\texttt{robot\_communicator.py}): construye JSON y publica a \texttt{/move} de forma asíncrona (HTTPX). Una capa de desduplicación suprime comandos idénticos consecutivos y un limitador de tasa evita inundar el plano de control.
+\end{enumerate}
+
+\paragraph*{Configuración de ejecución.}
+\texttt{config.py} contiene IP/puertos del robot, índice de cámara, confidencias de MediaPipe y límites de mapeo de velocidad. Se ejecuta con \texttt{python -m manual\_control.main} y muestra una ventana superpuesta (ESC para salir).
+
+\subsection{Aplicación en el host: Modo Automático}
+\label{sec:software:auto}
+
+El controlador autónomo (\texttt{auto\_soccer\_bot/}) cierra el lazo percepción→actuación desde el flujo del ESP32-CAM. La orquestación en \texttt{application.py} comprende cuatro tareas asíncronas: ingesta, percepción, decisión y transporte de comandos.
+
+\paragraph*{1) Ingesta de flujo (\texttt{camera\_manager.py})}
+Un \texttt{httpx.AsyncClient} se conecta a \texttt{http://\textless{}ESP32\_IP\textgreater{}:81/stream} con timeout de conexión y sin timeout de lectura. El límite MJPEG se analiza incrementalmente; sólo se conserva el \emph{último} frame decodificado (descartando obsoletos) para minimizar latencia. Geometría por defecto: QVGA (320\,$\times$\,240); una ruta de \emph{resize} opcional está desactivada.
+
+\paragraph*{2) Percepción híbrida (\texttt{ball\_detector.py}).}
+Combinamos un detector HSV ligero con pasadas programadas de YOLO:
+\begin{itemize}
+    \item \textbf{HSV}: umbral en HSV usando \texttt{LOWER\_BALL\_COLOR} / \texttt{UPPER\_BALL\_COLOR}, morfología suave y filtro de área mínima.
+    \item \textbf{YOLO (Ultralytics)}: ejecutado cada \texttt{DETECTION\_INTERVAL} frames (por defecto 6); detecciones filtradas por \texttt{TARGET\_CLASS\_NAMES} y umbral de confianza. Los resultados se \emph{cachean} con un TTL corto para cubrir frames entre pasadas.
+\end{itemize}
+Ambos detectores emiten \((c_x, c_y, \mathrm{area})\). Una regla de prioridad prefiere YOLO válido; en otro caso, el estimado HSV.
+
+\paragraph*{3) Decisión (\texttt{robot\_controller.py}).}
+Una FSM gobierna el comportamiento: \texttt{SEARCHING} $\rightarrow$ \texttt{BALL\_DETECTED} $\rightarrow$ \texttt{APPROACHING} $\rightarrow$ \texttt{CAPTURED}. Un corredor objetivo \([x_{\min}, x_{\max}]\) alrededor del centro reduce oscilación; fuera del corredor, el guiado usa giros suaves con \texttt{APPROACH\_TURN\_RATIO}. Ventanas de confirmación y \emph{grace timers} (\texttt{BALL\_CONFIRMATION\_THRESHOLD}, \texttt{BALL\_LOST\_TIMEOUT\_MS}) desbounced transiciones.
+
+\paragraph*{4) Transporte de comandos (\texttt{robot\_communicator.py}).}
+Los comandos se publican a \texttt{http://\textless{}ESP32\_IP\textgreater{}:80/move} con JSON \{\texttt{direction}, \texttt{speed}, \texttt{turn\_ratio}\}. El comunicador desduplica cargas consecutivas idénticas, aplica espaciamiento mínimo entre envíos y reintentos acotados con backoff ante errores transitorios. Se registra éxito/fallo.
+
+\paragraph*{Configuración.}
+Umbrales, URLs, límites HSV y rutas YOLO viven en \texttt{config\_auto.py}. Flujo por defecto QVGA con calidad JPEG moderada; la percepción usa \texttt{SATURATION=3.5} y \texttt{BRIGHTNESS=1} (opcional) para separar color.
+
+\subsection{Entrenamiento del modelo de visión (\texttt{soccer\_vision/})}
+\label{sec:software:vision}
+
+El módulo \texttt{soccer\_vision/} proporciona entrenamiento/evaluación para modelos YOLOv11 con dos clases: \texttt{goal} y \texttt{opponent}.
+
+\paragraph*{Datos y anotación.}
+Las imágenes se etiquetaron en Label Studio y se exportaron en formato YOLO (images/labels), ubicándolas bajo \texttt{soccer\_vision/dataset/} (\texttt{train/}, opcional \texttt{val/}). Los nombres de clase se validan con \texttt{classes.txt}.
+
+\paragraph*{Flujo de entrenamiento.}
+Un cuaderno \texttt{notebooks/01\_retrain\_yolo.ipynb} invoca \texttt{notebooks/modules/train.py} para:
+\begin{enumerate}
+    \item verificar estructura del dataset y mapa de clases;
+    \item crear partición de validación si falta;
+    \item generar \texttt{data.yaml} para Ultralytics;
+    \item lanzar entrenamiento YOLOv11 con semillas fijas y \emph{checkpoints}.
+\end{enumerate}
+Los artefactos (mejores pesos, matrices de confusión, curvas PR/F1, logs) se copian a \texttt{soccer\_vision/results/} para inclusión en el artículo. Un segundo cuaderno \texttt{02\_test\_and\_demo.ipynb} demuestra inferencia en medios nuevos.
+
+\paragraph*{Reproducibilidad.}
+Cada submódulo Python incluye su \texttt{requirements.txt}; los entornos se crean dentro de cada módulo.
+
+% --- 9. EXPERIMENTOS Y RESULTADOS ---
+\section{Experimentos y Resultados}
+\label{sec:results}
+
+Evaluamos (i) los modelos de visión entrenados en \texttt{soccer\_vision/} y (ii) el comportamiento del lazo autónomo integrado (streaming~$\rightarrow$ percepción~$\rightarrow$ decisión~$\rightarrow$ actuación). Salvo mención, se usaron valores por defecto de Ultralytics y el ESP32-CAM transmitió MJPEG QVGA (320$\times$240).
+
+\subsection{Desempeño del modelo de visión}
+\label{sec:results:vision}
+
+Entrenamos un \textbf{YOLOv11s} ligero en un dataset de dos clases (\texttt{goal}, \texttt{opponent}). La canalización produjo un conjunto de validación retenido y artefactos estándar (matriz de confusión, curvas PR/F1). La Tabla~\ref{tab:vision_metrics} resume las métricas;\footnote{%
+mAP@0.5 es la media de precisión promedio a umbral IoU $0.5$. El F1 pico es la media armónica máxima de precisión y recall al barrer umbrales de score.} las Figuras~\ref{fig:confusion}--\ref{fig:pr_curve} muestran la matriz de confusión y la curva PR.
+
+\begin{table}[htbp]
+\caption{Desempeño en validación de YOLOv11s (2 clases)}
+\label{tab:vision_metrics}
+\centering
+\begin{tabular}{|l|c|}
+\hline
+\textbf{Métrica} & \textbf{Valor} \\
+\hline
+mAP@0.5 (macro, todas) & 0.991 \\
+F1 pico & 0.86--0.90 \\
+AP (goal) & 0.995 \\
+AP (opponent) & 0.987 \\
+\hline
+\end{tabular}
+\end{table}
+
+El detector alcanzó AP casi perfecta en \texttt{goal} (0.995) y rendimiento robusto en \texttt{opponent} (0.987). La matriz de confusión normalizada (Fig.~\ref{fig:confusion}) indica 1.00 de acierto en \texttt{goal} y 0.95 en \texttt{opponent} (≈5\% omitido como fondo). La curva PR (Fig.~\ref{fig:pr_curve}) muestra alta precisión consistente a lo largo del recall, lo que respalda su idoneidad para el control downstream.
+
+\begin{figure}[htbp]
+\centerline{\includegraphics[width=0.9\columnwidth]{confusion_matrix_normalized.png}}
+\caption{Matriz de confusión normalizada para YOLOv11s.}
+\label{fig:confusion}
+\end{figure}
+
+\begin{figure}[htbp]
+\centerline{\includegraphics[width=0.72\columnwidth]{PR_curve.png}}
+\caption{Curva Precisión–Recall; mAP@0.5 global = 0.991.}
+\label{fig:pr_curve}
+\end{figure}
+
+\begin{figure}[htbp]
+\centerline{\includegraphics[width=0.9\columnwidth]{F1_curve.png}}
+\caption{Curva F1 a través de umbrales de score.}
+\label{fig:f1_curve}
+\end{figure}
+
+\subsection{Evaluación del sistema integrado}
+\label{sec:results:system}
+
+\paragraph*{Configuración e instrumentación.}
+Evaluamos el lazo autónomo completo bajo el \S~\ref{sec:software:auto}: QVGA (320$\times$240) MJPEG, calidad JPEG~30, YOLO cada $N{=}6$ frames, HSV cada frame y la FSM de \texttt{RobotController.py} con ventanas de confirmación y corredor horizontal. Registramos tiempos en cada etapa, el detector activo (cache de YOLO vs.\ HSV) y estadísticas de emisión de comandos (limitación y desduplicación).
+
+\paragraph*{Evolución de la percepción: color $\rightarrow$ YOLO $\rightarrow$ híbrido.}
+\begin{enumerate}
+\item \emph{Sólo color:} HSV puro entregó respuesta por frame pero fue frágil ante iluminación y fondos. El controlador reaccionaba al signo instantáneo del error lateral del balón, generando pivotes izquierda–derecha (“\emph{thrashing}”) alrededor del centro. La actuación retrasada hacía que el robot “\emph{persiguiera el pasado}”.
+\item \emph{Sólo YOLO:} Mayor robustez a iluminación/oclusiones, pero cómputo más pesado y ráfagas. Corriendo cada frame, la inferencia acumulaba y, con captura ingenua por URL, formaba colas; corriendo esporádico, las pérdidas transitorias causaban \emph{flapping}. Decisiones con frames obsoletos producían sobrecorrecciones.
+\item \emph{Híbrido + ingesta fresca:} La versión final combina ambos y corrige la ingesta. \texttt{BallDetector} ejecuta YOLO cada \texttt{DETECTION\_INTERVAL} y trata detecciones como válidas por \texttt{yolo\_ttl\_frames = max(N$\times$2, 3)}; de otro modo retorna HSV. En paralelo, la ingesta migró a un parser MJPEG con \emph{retención del último frame}, eliminando colas y anclando decisiones al frame más reciente.
+\end{enumerate}
+
+\paragraph*{Refinamientos del controlador que estabilizaron el rumbo.}
+\begin{enumerate}
+  \item \textbf{Ventana de confirmación (\texttt{BALL\_DETECTED}).} Requiere \texttt{BALL\_CONFIRMATION\_THRESHOLD} detecciones consecutivas antes de pasar a \texttt{APPROACHING\_BALL}, con giros correctivos a velocidad decreciente y \texttt{MAX\_ADJUSTMENT\_TIMEOUT\_MS} que evita abortos prematuros.
+  \item \textbf{Corredor objetivo con giros suaves (\texttt{APPROACHING\_BALL}).} En vez de pivotar por error instantáneo, define umbrales de píxeles 
+  $[x_{\min}, x_{\max}] = [\texttt{TARGET\_ZONE\_X\_MIN}\cdot W,\ \texttt{TARGET\_ZONE\_X\_MAX}\cdot W]$.
+  Si $x$ cae fuera, aplica \texttt{soft\_left/right} con \texttt{APPROACH\_TURN\_RATIO} acotado; de lo contrario avanza \texttt{forward}.
+  \item \textbf{Temporizadores de pérdida.} Brechas cortas activan \texttt{stop} manteniendo el estado; pérdidas prolongadas más allá de \texttt{BALL\_LOST\_TIMEOUT\_MS} regresan a \texttt{SEARCHING\_FOR\_BALL}.
+\end{enumerate}
+
+\paragraph*{Resultados observados.}
+\begin{itemize}
+  \item \textbf{Latencia y frescura.} HTTPX + \emph{último frame} removió retrasos por cola; el lazo se mantuvo responsivo.
+  \item \textbf{Robustez.} El programa híbrido (YOLO cada $N$ con TTL, HSV cada frame) sostuvo el seguimiento a través de fallos breves de color y cambios de iluminación sin el costo de correr YOLO en cada frame.
+  \item \textbf{Estabilidad.} La ventana de confirmación, el corredor y los giros suaves eliminaron oscilaciones al cruzar el centro y redujeron el \emph{flapping}.
+  \item \textbf{Plano de comandos.} Desduplicación e intervalo mínimo evitaron inundar \texttt{/move}, produciendo tiempos de actuación más predecibles.
+\end{itemize}
+
+\paragraph*{Comprobación del modo manual.}
+El modo por gestos fue fluido con iluminación frontal; los fallos (oclusiones parciales, poses no frontales) se mitigaron al subir umbrales de confianza y mejorar la luz.
+
+\paragraph*{Limitaciones.}
+Los resultados reflejan una única geometría de cámara (QVGA) y nuestro dataset; la generalización a canchas/luces diversas requiere más pruebas. La FSM autónoma actualmente sólo fusiona el balón; integrar \texttt{goal}/\texttt{opponent} queda como trabajo futuro (Sec.~\ref{sec:conclusion}). Finalmente, el control usa HTTP sin cifrar, adecuado para LAN de laboratorio pero no para redes no confiables.
+
+\begin{figure}[htbp]
+\centerline{\includegraphics[width=0.75\columnwidth]{realignment-process.png}}
+\caption{Corridor-based heading realignment with soft turns and confirmation window.}
+\label{fig:realign}
+\end{figure}
+
+% --- 10. CONCLUSIONES Y TRABAJO FUTURO ---
+\section{Conclusiones y Trabajo Futuro}
+\label{sec:conclusion}
+
+\subsection{Conclusiones}
+
+Este trabajo presentó el \emph{Auto Soccer Bot}, un robot móvil de bajo costo y control híbrido que acopla una plataforma ESP32-CAM con una pila de percepción y decisión en portátil sobre una API HTTP. Al descargar la visión intensiva al host y mantener la actuación en tiempo real en el robot, el sistema logra comportamientos inviables sólo con el microcontrolador.
+
+\textbf{Resumen de contribuciones.}
+\begin{itemize}
+  \item Una canalización completa de \textbf{doble modo}: (i) teleoperación por gestos con MediaPipe y (ii) persecución autónoma del balón impulsada por percepción en host y FSM.
+  \item Una \textbf{percepción híbrida} que combina YOLOv11s (programado cada $N$ frames con cache de TTL corto) y detección por color HSV por frame, sobre ingesta MJPEG de baja latencia con retención del último frame.
+  \item Un \textbf{controlador estabilizado} con ventana de confirmación, corredor horizontal con giros suaves y temporizadores de pérdida, implementado en \texttt{RobotController.py}, que elimina oscilaciones y \emph{flapping}.
+  \item Un \textbf{detector entrenado de dos clases} (\texttt{goal}, \texttt{opponent}) con rendimiento fuerte (mAP@0.5 $= 0.991$), reproducible vía \texttt{soccer\_vision}.
+\end{itemize}
+
+A lo largo de los experimentos, la combinación de detección híbrida, ingesta de frames frescos y refinamientos de la FSM resolvió los problemas principales (latencia de flujo, decisiones obsoletas, oscilación de rumbo), resultando en un comportamiento autónomo responsivo y predecible.
+
+\subsection{Trabajo Futuro}
+
+El sistema valida la arquitectura y demuestra seguimiento robusto; varias extensiones son naturales:
+\begin{itemize}
+  \item \textbf{Fusión de decisiones multiobjeto.} Integrar \texttt{goal} y \texttt{opponent} en el lazo percepción→acción. Ampliar la FSM para \emph{alinear a portería}, \emph{disparar}, \emph{evitar oponente} y \emph{re-adquirir}.
+  \item \textbf{Mejoras del controlador.} Explorar control proporcional ligero del error lateral dentro del corredor (ganancias acotadas) y términos anticipatorios sencillos, preservando la \emph{deadband}.
+  \item \textbf{Evaluación a escala.} Añadir ensayos cuantitativos en diversa iluminación/canchas y reportar histogramas de latencia, tasas de re-adquisición, tiempo a centrar y estabilidad de aproximación.
+  \item \textbf{Coordinación multirrobot.} Añadir comunicación inter-robot para roles (atacante/defensa) y evasión simple, manteniendo el cómputo distribuido.
+  \item \textbf{Transporte y seguridad.} Reemplazar HTTP sin cifrar por autenticación mínima (token precompartido) o migrar comandos a UDP/WebSocket con números de secuencia; considerar TLS para redes no confiables.
+  \item \textbf{Portabilidad de modelo.} Empaquetar pesos y configs YOLO vía artefactos/Git LFS y soportar selección dinámica (CPU/GPU) con chequeos al inicio.
+\end{itemize}
+
+% --- REFERENCIAS ---
+\begin{thebibliography}{00}
+
+\bibitem{mediapipe}
+C. Lugaresi, J. Tang, H. Nash, C. McClanahan, E. Uboweja, M. Hays, \textit{et al.}, ``MediaPipe: A Framework for Building Perception Pipelines,'' \textit{arXiv preprint arXiv:1906.08172}, 2019.
+
+\bibitem{opencv}
+G. R. Bradski, ``The OpenCV Library,'' \textit{Dr. Dobb's Journal of Software Tools}, 2000.
+
+\bibitem{yolo}
+Ultralytics, ``YOLO by Ultralytics (v11),'' GitHub repository, 2024. [Online]. Available: https://github.com/ultralytics/ultralytics
+
+\bibitem{offloading}
+A. A. A. Sethaputri, A. F. P. A. P. Putra and I. K. E. Purnama, ``Displacing computing operations to an operator station over a wireless link in autonomous mobile robots,'' \textit{International Journal of Computer and Communication Engineering}, vol. 1, no. 2, pp. 125--129, 2012.
+
+\bibitem{esp32_offload}
+S. Tatipamula, ``Computer Vision with OpenCV on ESP32-CAM: Building Intelligent Vision Systems,'' \textit{ThinkRobotics}, 2023. [Online]. Available: https://thinkrobotics.com/blogs/learn/computer-vision-with-opencv-on-esp32-cam-building-intelligent-vision-systems
+
+\bibitem{fsm_soccer}
+J. J. G. R., A. M. L. G. and J. S. A., ``Decision-making system of soccer-playing robots using finite state machine based on skill hierarchy and path planning through Bezier polynomials,'' in \textit{2017 IEEE 9th International Conference on Humanoid, Nanotechnology, Information Technology, Communication and Control, Environment and Management (HNICEM)}, 2017, pp. 1--6.
+
+\bibitem{fsm_soccer2}
+J. G. Guarnizo and M. Mellado Arteche, ``Robot Soccer Strategy Based on Hierarchical Finite State Machine to Centralized Architectures,'' \textit{IEEE Latin America Transactions}, vol. 14, no. 8, pp. 3586--3596, 2016.
+
+\bibitem{hybrid_vision}
+Y.-C. Lin, C.-Y. Lin, C.-C. Chen and C.-Y. Chang, ``A Hybrid YOLOv4 and Particle Filter Based Robotic Arm Grabbing System in Nonlinear and Non-Gaussian Environment,'' \textit{Sensors}, vol. 21, no. 10, p. 3430, 2021.
+
+\bibitem{gesture_hri}
+Y. Chen, Z. Wang, Z. Li, and S. Li, ``Vision-based Gesture Tracking for Teleoperating Mobile Manipulators,'' in \textit{2022 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)}, 2022, pp. 8889--8895.
+
+\bibitem{gesture_mediapipe}
+A. M. Al-Khafaji and H. T. S. Al-Rikabi, ``Tracked Robot Control with Hand Gesture Based on MediaPipe,'' \textit{Journal of Engineering}, vol. 29, no. 6, pp. 123--136, 2023.
+
+\end{thebibliography}
+
+\end{document}
