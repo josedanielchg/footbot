@@ -2,11 +2,14 @@
 
 This page helps you go from zero → running in minutes. It’s organized by sub-project:
 
-1. `esp32cam_robot` (flash the firmware on the microcontroller)
-2. `manual_control` (hand-gesture teleop from your laptop)
-3. `auto_soccer_bot` (autonomous ball follower)
-4. `soccer_vision` (TODO)
+---
+## Table of Contents
 
+- [1) `esp32cam_robot` — Flash the firmware (Arduino IDE)](#1-esp32cam_robot--flash-the-firmware-arduino-ide)
+- [2) `manual_control` — Hand-gesture teleoperation (laptop)](#2-manual_control--hand-gesture-teleoperation-laptop)
+- [3) `auto_soccer_bot` — Autonomous ball follower (laptop)](#3-auto_soccer_bot--autonomous-ball-follower-laptop)
+- [4) `soccer_vision` — Retrain & test custom YOLO (2 classes)](#4-soccer_vision--retrain--test-custom-yolo-2-classes)
+- [Common troubleshooting](#common-troubleshooting)
 ---
 
 ## 1) `esp32cam_robot` — Flash the firmware (Arduino IDE)
@@ -158,11 +161,143 @@ python -m auto_soccer_bot.main
 
 ---
 
-## 4) `soccer_vision` (legacy `opponent-detector`) — *Coming soon*
+## 4) `soccer_vision` — Retrain & test custom YOLO (2 classes)
 
-We’ll add a Jupyter-driven retraining flow (dataset download, split, train, export) and a lightweight inference tester.
+This module lets you **(re)train** YOLOv11 to detect **two classes** on-field: `goal` and `opponent`, then **run quick inference** on images/videos. It matches the full guide [here](soccer_vision.md).
 
-> **Placeholder:** setup will mirror the other Python modules (create `venv_soccer_vision`, install `requirements.txt`, run the provided notebook and `test_infer.py`).
+### Installation
+
+**Prerequisites**
+- Python **3.10+** (3.11 recommended)
+- (Optional) CUDA-capable GPU + matching PyTorch build
+- (Optional) **Label Studio** for annotation if you’re creating a new dataset
+
+**1) Create & activate a venv (inside the module)**
+> Do this **inside** the `soccer_vision/` folder.
+
+**Windows (PowerShell)**
+```powershell
+cd soccer_vision
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+````
+
+**macOS / Linux**
+
+````bash
+cd soccer_vision
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+````
+
+**2) Install dependencies**
+
+````bash
+pip install -r requirements.txt
+# Optional: pick the right Torch build for your machine
+# GPU example (CUDA 12.1):
+# pip install --index-url https://download.pytorch.org/whl/cu121 torch torchvision torchaudio
+# CPU-only:
+# pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision torchaudio
+````
+
+### Prepare the dataset (Label Studio → YOLO export)
+
+1. Start Label Studio:
+
+   ````bash
+   label-studio
+   ````
+2. At [http://localhost:8080](http://localhost:8080) create a project (e.g., “Soccer Vision”), add **Bounding Box** with labels:
+
+   * `goal`
+   * `opponent`
+3. Annotate → **Export** as **YOLO (v5/v8/v11)**.
+4. Place the export under:
+
+   ````
+   soccer_vision/
+     dataset/
+       train/
+         images/
+         labels/
+       # (optional) val/
+       classes.txt   # must contain exactly: goal, opponent
+   ````
+
+   *If `val/` is missing, training will create a split from `train/`*
+
+### Train (pick ONE path)
+
+**A) Notebook (recommended for first-time)**
+
+1. Launch Jupyter from the **activated venv**:
+
+   ````bash
+   python -m pip install notebook ipykernel  # if missing
+   python -m notebook
+   ````
+2. Open `notebooks/01_retrain_yolo.ipynb` and **Run All**.
+   The notebook validates the dataset, creates `data.yaml`, sets `ULTRALYTICS_HOME`, trains, and copies:
+
+   * **Best weights** → `models/yolo11s/soccer_yolo.pt`
+   * **Train artifacts** → `models/yolo11s/train_artifacts/`
+   * Curated plots can be copied to `results/` for docs.
+
+**B) CLI (headless)**
+
+````bash
+# from inside soccer_vision/ (venv active)
+python -m notebooks.modules.cli \
+  --model yolo11s.pt \
+  --epochs 60 \
+  --imgsz 640 \
+  --batch 16 \
+  --train_pct 0.9 \
+  --device 0          # GPU 0 (use "cpu" if no GPU)
+# Outputs:
+#  - models/yolo11s/soccer_yolo.pt
+#  - models/yolo11s/train_artifacts/...
+#  - runs/ (raw Ultralytics runs)
+````
+
+### Quick inference
+
+**Notebook path:** `notebooks/02_test_and_demo.ipynb` (images/videos → saves outputs to `runs/`).
+
+**One-liner (Python)**
+
+````python
+from ultralytics import YOLO
+m = YOLO("soccer_vision/models/yolo11s/soccer_yolo.pt")
+m.predict(
+    source="soccer_vision/dataset/val/images",  # or a file/folder/video path
+    save=True,
+    conf=0.86,                                  # start near F1 peak; tune as needed
+    project="soccer_vision/runs",
+    name="quick_predict",
+    exist_ok=True
+)
+````
+
+### Where to find results
+
+* **Weights:** `soccer_vision/models/yolo11s/soccer_yolo.pt`
+* **Train artifacts (plots, curves, confusion matrix, args):**
+  `soccer_vision/models/yolo11s/train_artifacts/`
+* **Curated plots for docs:** `soccer_vision/results/`
+* **Raw Ultralytics runs:** `soccer_vision/runs/`
+
+> Note: You can find all the results of the trained model at the end of the **Soccer vision** documentation: [here](soccer_vision.md)
+
+### Tips & troubleshooting
+
+* **No `val/` split:** The trainer creates one from `train/` automatically (move by default).
+* **GPU not used:** Install the **CUDA-matched** Torch wheel (see commands above) or set `--device cpu`.
+* **Confidence threshold:** Start inference around **`conf≈0.86–0.90`** (F1 peak per docs) and adjust for your FP/latency trade-off.
+* **Large runs folder:** You can prune old `soccer_vision/runs/` after exporting the best weights.
 
 ---
 

@@ -207,7 +207,7 @@ print("Ultralytics :", ultralytics.__version__)
 </tr>
 <tr>
   <td align="center" colspan="2">
-    <img src="../../soccer_vision/results/confusion_matrix_normalized.png" width="300"><br>
+    <img src="../../soccer_vision/results/confusion_matrix_normalized.png" width="700"><br>
     <sub><b>Matrice de confusion (normalisée)</b><br>
     Correct sur la diagonale. <b>goal ≈ 1,00</b> ; <b>opponent ≈ 0,95</b> avec ~5% manqués comme arrière-plan.</sub>
   </td>

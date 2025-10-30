@@ -1,4 +1,15 @@
 ## ESP32-CAM robot (`esp32cam_robot/`) — Architecture & Operation
+
+---
+
+## Table of Contents
+
+- [What this module does](#what-this-module-does)
+- [Languages & build tools](#languages--build-tools)
+- [Folder structure (high level)](#folder-structure-high-level)
+- [File responsibilities (summary)](#file-responsibilities-summary)
+
+
 ---
 ### What this module does
 The ESP32-CAM hosts a **local web server** so the laptop can **connect over Wi-Fi** to:

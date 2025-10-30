@@ -1,7 +1,7 @@
 ## Manual control (`manual_control/`) — Architecture & Operation
 ---
 
-### Index
+### Table of Contents
 - [What this module does](#what-this-module-does)
 - [Languages & runtime](#languages--runtime)
   - [Core libraries (details)](#core-libraries-details)

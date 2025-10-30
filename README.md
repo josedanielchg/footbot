@@ -28,16 +28,17 @@ This project is a **robot football player controlled by an ESP32**. It operates 
   - 🇬🇧 [Docs — EN](#)
   - 🇪🇸 [Docs — ES](docs/es/README.md)
   - 🇫🇷 [Docs — FR](docs/fr/README.md)
-- 🧭 [**How it works**](docs/en/how-it-works.md)
+- ⚙️ [**How it works**](docs/en/how-it-works.md)
   - [ESP32-CAM robot — Architecture & Operation](docs/en/esp32cam_robot.md)
   - [Manual control — Architecture & Operation](docs/en/manual_control.md)
   - [Automatic mode — Architecture & Operation](docs/en/auto_soccer_bot.md)
   - [Soccer Vision — Architecture & Operation](docs/en/soccer_vision.md)
   - [API & Communication Protocols](docs/en/api-communication-protocols.md)
 - 🗂️ [**Repository structure**](docs/en/repository-structure.md)
-- 🔧 [**Hardware & Power — Electronics & Wiring Guide**](docs/en/hardware-power.md)
+- 🔌 [**Hardware & Power — Electronics & Wiring Guide**](docs/en/hardware-power.md)
 - 🧪 **Project status**
-- 🚀 **Quick start**
+- 🚀 [**Quick start**](docs/en/quick_start.md)
+- 🎯 [**Conclusion, Results & Challenges**](docs/en/conclusion.md)
 - 📄 **License**
 
 ---

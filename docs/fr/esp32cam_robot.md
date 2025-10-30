@@ -1,21 +1,31 @@
-## ESP32-CAM robot (`esp32cam_robot/`) — Architecture & Fonctionnement
+## Robot ESP32-CAM (`esp32cam_robot/`) — Architecture & fonctionnement
+
+---
+
+## Table des matières
+
+- [Ce que fait ce module](#ce-que-fait-ce-module)
+- [Langages & outils de build](#langages--outils-de-build)
+- [Structure des dossiers (vue densemble)](#structure-des-dossiers-vue-densemble)
+- [Responsabilités des fichiers (résumé)](#responsabilités-des-fichiers-résumé)
+
 ---
 
 ### Ce que fait ce module
-L’ESP32-CAM héberge un **serveur web local** pour que l’ordinateur portable se connecte en **Wi-Fi** et puisse :
-- **Envoyer des commandes de déplacement** (avancer, tourner, arrêt) via HTTP.
-- **Récupérer des images** en JPEG (`/capture`) ou un **flux MJPEG** continu (`/stream`).
+L’ESP32-CAM héberge un **serveur web local** afin que l’ordinateur portable puisse **se connecter en Wi-Fi** pour :
+- **Envoyer des commandes de conduite** (avancer/tourner/stop) via HTTP.
+- **Récupérer les données caméra** sous forme d’une image JPEG unique (`/capture`) ou d’un **flux MJPEG continu** (`/stream`).
 
 Deux serveurs HTTP sont lancés :
 - **Contrôle/Capture** sur le **port 80** → routes : `/`, `/status`, `/control`, `/capture`, `/move`.
 - **Streaming** sur le **port 81** → route : `/stream`.
 
-Le portable assure la perception/décision ; l’ESP32 gère le **capteur** et l’**actionnement bas niveau**.
+L’ordinateur exécute la perception et la décision ; l’ESP32 se concentre sur la **capteurisation + l’actionnement bas niveau**.
 
 ---
 
 ### Langages & outils de build
-- **Langage :** C++ avec le **noyau Arduino pour ESP32** (utilise `esp_http_server` d’ESP-IDF).
+- **Langage :** C++ avec le **core Arduino pour ESP32** (utilise en interne `esp_http_server` d’ESP-IDF).
 - **Build :** **Arduino IDE 2.x** (recommandé).  
   - Carte : **AI Thinker ESP32-CAM**.  
   - Activer la **PSRAM** (si disponible).  
@@ -23,51 +33,49 @@ Le portable assure la perception/décision ; l’ESP32 gère le **capteur** et l
 
 ---
 
-### Arborescence (haut niveau)
+### Structure des dossiers (vue d’ensemble)
 ```
 
 esp32cam_robot/
 ├─ esp32cam_robot.ino      # Sketch principal (boot, Wi-Fi, caméra, serveurs)
-├─ partitions.csv          # Table de partitions flash
+├─ partitions.csv          # Table de partition utilisée par le sketch
 └─ src/
-  ├─ handlers/             # Handlers HTTP (caméra + contrôle robot)
-  ├─ vendor/               # En-têtes tiers (ex. ArduinoJson.h)
-  ├─ app_httpd.cpp         # Aides caméra/stream (base exemple ESP32)
-  ├─ camera_index.h        # Page(s) HTML servies sur "/"
-  ├─ camera_pins.h         # Mappage des broches
-  ├─ config.h              # SSID/mot de passe, ports, GPIOs  ⟵ ne pas *committer* de secrets
-  ├─ MotorControl.*        # Traction différentielle (PWM + direction)
-  ├─ CameraController.*    # Initialisation caméra et *tuning*
-  ├─ LedControl.*          # LED d’état (si utilisée)
-  ├─ WifiManager.*         # Connexion Wi-Fi
-  ├─ WebRequestHandlers.*  # Agrégateur/initialiseur de handlers
-  └─ WebServerManager.*    # Démarrage/arrêt des deux serveurs HTTP
+├─ handlers/             # Handlers des routes HTTP (caméra + contrôle robot)
+├─ vendor/               # En-têtes tiers (ex. ArduinoJson.h)
+├─ app_httpd.cpp         # Aides caméra/stream (base exemple ESP32)
+├─ camera_index.h        # Page(s) HTML minimale(s) servie(s) sur "/"
+├─ camera_pins.h         # Mappage des broches (AI Thinker, etc.)
+├─ config.h              # SSID/mot de passe, ports, GPIOs  ⟵ ne pas versionner les secrets
+├─ MotorControl.*        # Différentiel (PWM + direction)
+├─ CameraController.*    # Init caméra & réglages capteur
+├─ LedControl.*          # LED d’état/assistance (si utilisée)
+├─ WifiManager.*         # Mise en service Wi-Fi
+├─ WebRequestHandlers.*  # Agrège/initialise les handlers d’URI
+└─ WebServerManager.*    # Démarre/arrête les deux serveurs HTTP
 
 ```
 
-> Les charges utiles et la sémantique détaillée des endpoints figurent dans la section API. Ci-dessous, uniquement le **but principal** de chaque fichier.
+> Les charges utiles des endpoints et la sémantique détaillée de l’API figurent dans la section API. Ci-dessous, une **carte rapide** du rôle principal de chaque fichier.
 
 ---
 
 ### Responsabilités des fichiers (résumé)
 
-| Chemin | Type | But principal | Interface exposée (fonctions / endpoints) | Remarques |
+| Chemin | Type | Rôle principal | Interface exposée (fonctions / endpoints) | Notes |
 |---|---|---|---|---|
-| `esp32cam_robot.ino` | Sketch | Séquence de boot ; init LED & moteurs → caméra → Wi-Fi → serveurs ; affiche les URLs ; boucle idle | `setup()`, `loop()`, `measure_fps(int)` | Point central pour l’ordre d’initialisation et les logs. |
-| `src/config.h` | Config | Paramètres de compilation : modèle caméra, **SSID/mot de passe**, ports HTTP, broches moteur/LED | macros : `WIFI_SSID`, `HTTP_CONTROL_PORT`, etc. | Éviter de versionner des identifiants réels. |
-| `src/CameraController.h` | Pilote | Mise en route et réglage capteur ; gestion PSRAM ; framesize/qualité initiale | `bool initCamera()`, `sensor_t* getCameraSensor()` | Par défaut JPEG + QVGA pour un streaming fluide. |
-| `src/MotorControl.h/.cpp` | Pilote | Traction différentielle via **PWM LEDC** ; sens de rotation | `setupMotors()`, `moveForward/Backward(int)`, `turnLeft/Right(int)`, `arcLeft/Right(int,float)`, `stopMotors()` | Utilise canaux *enable* + broches IN par moteur. |
-| `src/WifiManager.h/.cpp` | Réseau | Connexion Wi-Fi, désactivation du *sleep*, impression IP, gestion du *timeout* | `bool connectWiFi()` | Retourne `false` après ~20 s si échec. |
-| `src/WebServerManager.h/.cpp` | Serveur | Démarrer/arrêter **deux** serveurs HTTP et enregistrer les routes | `bool startWebServer()`, `void stopWebServer()` | Contrôle **80** : `/`, `/status`, `/control`, `/capture`, `/move` · Stream **81** : `/stream`. |
+| `esp32cam_robot.ino` | Sketch | Séquence de boot ; init LED & moteurs → caméra → Wi-Fi → démarrage serveurs ; affiche les URLs ; boucle idle | `setup()`, `loop()`, `measure_fps(int)` | Point unique pour changer l’ordre de boot / le logging. |
+| `src/config.h` | Config | Configuration à la compilation : modèle caméra, **Wi-Fi SSID/PASS**, ports HTTP, broches moteur/LED | macros : `WIFI_SSID`, `HTTP_CONTROL_PORT`, définitions de broches | Ne pas committer de vraies informations d’identification. |
+| `src/CameraController.h` | Pilote | Mise en service et réglage de la caméra ; gestion PSRAM ; taille/qualité initiales | `bool initCamera()`, `sensor_t* getCameraSensor()` | Par défaut JPEG + QVGA pour un streaming fluide. |
+| `src/MotorControl.h/.cpp` | Pilote | Conduite différentielle avec **LEDC PWM** ; contrôle de direction | `setupMotors()`, `moveForward/Backward(int)`, `turnLeft/Right(int)`, `arcLeft/Right(int,float)`, `stopMotors()` | Utilise canaux d’activation + broches IN par moteur. |
+| `src/WifiManager.h/.cpp` | Réseau | Rejoindre le réseau Wi-Fi, désactiver le sleep, afficher l’IP, gérer le timeout | `bool connectWiFi()` | Retourne `false` en cas d’échec (~20 s). |
+| `src/WebServerManager.h/.cpp` | Serveur | Démarrer/arrêter **deux** serveurs HTTP et enregistrer les routes | `bool startWebServer()`, `void stopWebServer()` | Contrôle sur **80** (`/`, `/status`, `/control`, `/capture`, `/move`) ; stream sur **81** (`/stream`). |
 | `src/WebRequestHandlers.h/.cpp` | Colle | Agrège/initialise les sous-systèmes de handlers | `initializeWebRequestHandlers()` | Inclut `handlers/camera_handlers.*` et `handlers/robot_control_handlers.*`. |
-| `src/handlers/camera_handlers.h/.cpp` | Handlers | API web de la caméra | Endpoints : `"/"` (index), `"/status"` (JSON), `"/control"` (paramètres), `"/capture"` (JPEG), `"/stream"` (MJPEG) | LED optionnelle pendant capture/stream. |
-| `src/handlers/robot_control_handlers.h/.cpp` | Handlers | Exécution des ordres de mouvement via **POST JSON** | Endpoint : `"/move"` avec `{direction, speed?, turn_ratio?}` → `MotorControl` | Directions : `forward/backward/left/right/soft_* / stop`. |
-| `src/app_httpd.cpp` | Support | Utilitaires issus de l’exemple caméra ESP32 (encodage/servi des frames) | — | Utilisé par les handlers caméra. |
-| `src/camera_index.h` | UI | HTML gzip servi sur `/` (variante selon capteur) | servi par `indexHandler` | Petite page d’état/config. |
-| `src/camera_pins.h` | HW | Définition des broches pour cartes supportées | macros | Sélectionné via `CAMERA_MODEL_*` dans `config.h`. |
-| `src/LedControl.*` | Pilote | Contrôle de la LED d’état/assistance | `setupLed()`, `setLedIntensity(int)`, `controlLed(bool,int)`, `setLedStreamingState(bool)` | Intégré à capture/stream. |
-| `src/vendor/ArduinoJson.h` | Tiers | Parsing JSON du corps `/move` | — | En-tête embarquée pour portabilité. |
-| `partitions.csv` | Mémoire | Table de partitions (OTA, NVS, coredump, etc.) | — | Nécessaire pour caméra + OTA. |
-| `ci.json` | Build/CI | *Presets* Arduino CLI (ESP32/S2/S3 ; PSRAM, partitions) | — | Pour des builds reproductibles. |
-
----
+| `src/handlers/camera_handlers.h/.cpp` | Handlers | Implémentation de l’API web caméra | Endpoints : `"/"` → **index**, `"/status"` → statut JSON, `"/control"` → paramètres caméra (`var`,`val`), `"/capture"` → JPEG, `"/stream"` → MJPEG | Le streaming utilise une frontière multipart ; LED d’assistance optionnelle. |
+| `src/handlers/robot_control_handlers.h/.cpp` | Handlers | Exécuter les commandes de mouvement reçues via **HTTP POST JSON** | Endpoint : `"/move"` avec `{direction, speed?, turn_ratio?}` → appelle `MotorControl` | Directions : `forward/backward/left/right/soft_left/soft_right/stop`. |
+| `src/app_httpd.cpp` | Support | Utilitaires issus de l’exemple caméra ESP32 (encodage/serving des frames) | helpers internes | Référencé par les handlers caméra. |
+| `src/camera_index.h` | UI | HTML gzip pour `/` (variantes spécifiques capteur) | servi par `indexHandler` | Mini page de configuration/statut. |
+| `src/camera_pins.h` | Carte HW | Définitions de broches pour cartes ESP32-CAM supportées | macros | Sélection via `CAMERA_MODEL_*` dans `config.h`. |
+| `src/LedControl.*` | Pilote | Contrôle LED d’état/assistance (optionnel) | `setupLed()`, `setLedIntensity(int)`, `controlLed(bool,int)`, `setLedStreamingState(bool)` | Utilisé par capture/stream pour signaler l’activité. |
+| `src/vendor/ArduinoJson.h` | Tiers | Parsing JSON du corps `/move` | — | En-tête embarqué pour la portabilité. |
+| `partitions.csv` | Table de partitions | Table personnalisée (OTA, NVS, coredump, etc.) | — | Nécessaire pour faire tenir caméra + appli OTA. |
+| `ci.json` | CI/Matrix build | Presets FQBN Arduino CLI (ESP32/ESP32-S2/S3 ; PSRAM, partitions) | — | Aide à des builds reproductibles en automatisation. |
