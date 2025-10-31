@@ -14,13 +14,13 @@
 \title{Diseño de un robot futbolista de control híbrido usando un ESP32 y visión por computador en un portátil}
 
 % --- 2. AUTORES ---
-\author{\IEEEauthorblockN{Chacón Gómez. José Daniel}
+\author{\IEEEauthorblockN{Chacón Gómez, José Daniel}
 \IEEEauthorblockA{\textit{Estudiante de Ingeniería en Informática} \\
 \textit{Universidad Nacional Experimental del Táchira (UNET)}\\
 San Cristóbal, Táchira, Venezuela \\
 josedaniel.chacon@unet.edu.ve}
 \and
-\IEEEauthorblockN{Castillo Gimenez. Alba Patricia}
+\IEEEauthorblockN{Castillo Giménez, Alba Patricia}
 \IEEEauthorblockA{\textit{Estudiante de Ingeniería Mecánica} \\
 \textit{Universidad Nacional Experimental del Táchira (UNET)}\\
 San Cristóbal, Táchira, Venezuela \\
@@ -78,7 +78,7 @@ El sistema (Fig.~\ref{fig:arch}) es una arquitectura distribuida con dos agentes
 \subsection{Modo de Control Manual}
 En modo manual, el flujo de datos se origina en la webcam del portátil y alimenta un lazo gesto→comando:
 \begin{enumerate}
-    \item \textbf{Sensado:} Una webcam captura frames RGB del usuario.
+    \item \textbf{Adquisición de imagen:} Una webcam captura frames RGB del usuario.
     \item \textbf{Percepción:} Una aplicación Python (MediaPipe Hands) detecta puntos de referencia de la mano y clasifica el gesto de la mano derecha en comandos discretos (p.\,ej., \texttt{forward}, \texttt{left}, \texttt{stop}); la distancia pulgar–índice de la mano izquierda se mapea a la velocidad.
     \item \textbf{Decisión/Codificación:} La intención clasificada se mapea a primitivas de movimiento y se serializa como JSON.
     \item \textbf{Actuación:} El comando se envía vía HTTP \texttt{POST} al endpoint \texttt{/move} del robot ESP32. El firmware analiza la carga y actualiza PWM y dirección de motores.
@@ -87,8 +87,8 @@ En modo manual, el flujo de datos se origina en la webcam del portátil y alimen
 \subsection{Modo Automático}
 En modo automático, el flujo de datos se origina en el ESP32-CAM a bordo:
 \begin{enumerate}
-    \item \textbf{Sensado:} El ESP32-CAM transmite MJPEG por Wi-Fi a resolución $\mathrm{QVGA}$ ($320 \times 240$) desde un servidor dedicado.
-    \item \textbf{Percepción:} Una aplicación en el host se suscribe al flujo y realiza detección \emph{híbrida} del balón: umbral HSV rápido en cada frame, complementado con un detector YOLO cada $N$ frames. (Los modelos YOLOv11 para \texttt{goal} y \texttt{opponent} están entrenados y validados, pero aún no integrados en el lazo en vivo.)
+    \item \textbf{Adquisición de imagen:} El ESP32-CAM transmite MJPEG por Wi-Fi a resolución $\mathrm{QVGA}$ ($320 \times 240$) desde un servidor dedicado.
+    \item \textbf{Percepción:} Una aplicación en el host se suscribe al flujo y realiza detección \emph{híbrida} del balón: umbral HSV rápido en cada frame, complementado con un detector YOLO cada $N$ frames. (Los modelos YOLOv11 para \texttt{goal} y \texttt{opponent} están entrenados y validados, pero aún no integrados en el loop en vivo.)
     \item \textbf{Decisión:} La pose del balón alimenta una FSM que selecciona acciones como \texttt{SEARCHING} y \texttt{APPROACHING} para centrarlo y avanzar hacia él.
     \item \textbf{Actuación:} La acción elegida se serializa como JSON y se emite a \texttt{/move} vía HTTP \texttt{POST}.
 \end{enumerate}
@@ -108,7 +108,7 @@ Este diseño aísla el plano de control del camino de video de alto ancho de ban
 \section{Implementación de Hardware}
 \label{sec:hardware}
 
-El robot usa piezas comerciales de bajo costo. Un ESP32-CAM maneja sensado y red, mientras un L298N (doble puente H) proporciona potencia a motores y adaptación de niveles. La Tabla~\ref{tab:hardware} lista los componentes principales.
+El robot usa piezas comerciales de bajo costo. Un ESP32-CAM para la adquisición/percepción de imagen y red, mientras un L298N (doble puente H) proporciona potencia a motores y adaptación de niveles. La Tabla~\ref{tab:hardware} lista los componentes principales.
 
 \renewcommand{\arraystretch}{1.08}
 \begin{table}[htbp]
@@ -136,7 +136,7 @@ Chasis del robot & Estructura \\
 \subsection{Controlador principal y driver de motor}
 
 \textbf{ESP32-CAM:}
-El módulo AI-Thinker ESP32-CAM se alimenta del raíl de 5~V y expone dos servidores HTTP (control y streaming). Sus GPIO son de \emph{lógica 3.3~V}, suficiente para excitar entradas del L298N (umbral alto típico $\approx$2.3~V). El módulo captura video, sirve endpoints y emite PWM/señales lógicas para la actuación vía el driver.
+El módulo AI-Thinker ESP32-CAM se alimenta del raíl de 5~V y expone dos servidores HTTP (control y streaming). Sus GPIO son de \emph{lógica 3.3~V}, suficiente para alimentar entradas del L298N (umbral alto típico $\approx$2.3~V). El módulo captura video, sirve endpoints y emite PWM/señales lógicas para la actuación vía el driver.
 
 \textbf{Driver L298N:}
 El L298N recibe la batería en serie en \texttt{VIN} (a menudo “+12V”) para alimentar los puentes H. En nuestro montaje \emph{mantenemos} el regulador de 5~V a bordo (jumper \texttt{5V-EN} instalado) y usamos el pin \texttt{+5V} para alimentar tanto la lógica del L298N como el pin de 5~V del ESP32-CAM (ver Fig.~\ref{fig:wiring}). Con un pack 2S de dos celdas de 3.3~V ($\approx 6.6$~V nominal) este regulador opera cerca de su dropout; funcionó de forma fiable en pruebas, aunque con margen limitado ante transitorios de motor.
@@ -186,15 +186,15 @@ El firmware está escrito en C++ sobre Arduino core para ESP32 y \texttt{esp\_ht
     \item \texttt{POST /move} (JSON) $\rightarrow$ comando de movimiento:
 \begin{verbatim}
 { 
-    "direction": "
-        forward|
-        backward|
-        left|
-        right|
-        soft_left|
-        soft_right|
-        stop",
-  "speed": 0..255,
+  "direction": "
+    forward|
+    backward|
+    left|
+    right|
+    soft_left|
+    soft_right|
+    stop",
+  "speed": 0.255,
   "turn_ratio": 0.0..1.0 (optional)
 }
 \end{verbatim}
@@ -209,9 +209,9 @@ Responde \texttt{200 OK} con un pequeño ack en JSON; cargas inválidas devuelve
 
 El módulo de teleoperación (\texttt{manual\_control/}) implementa control por gestos con una webcam del portátil.
 
-\paragraph*{Flujo (sensar $\rightarrow$ interpretar $\rightarrow$ comandar).}
+\paragraph*{Flujo (adquisición de imagen $\rightarrow$ interpretar $\rightarrow$ comandar).}
 \begin{enumerate}
-    \item \textbf{Sensado} (\texttt{camera\_manager.py}): captura frames vía OpenCV con apertura/cierre seguro y \emph{throttling} de FPS.
+    \item \textbf{Adquisición de imagen} (\texttt{camera\_manager.py}): captura frames vía OpenCV con apertura/cierre seguro y \emph{throttling} de FPS.
     \item \textbf{Percepción} (\texttt{hand\_detector.py}): MediaPipe Hands devuelve 21 puntos y lateralidad; los frames se espejan (selfie view) y convierten a RGB.
     \item \textbf{Clasificación} (\texttt{gesture\_classifier.py}): la mano derecha codifica la dirección discreta (lógica fingertip–MCP); la distancia pulgar–índice de la mano izquierda (normalizada) se mapea a velocidad en \([0, 255]\).
     \item \textbf{Actuación} (\texttt{robot\_communicator.py}): construye JSON y publica a \texttt{/move} de forma asíncrona (HTTPX). Una capa de desduplicación suprime comandos idénticos consecutivos y un limitador de tasa evita inundar el plano de control.
@@ -223,12 +223,12 @@ El módulo de teleoperación (\texttt{manual\_control/}) implementa control por 
 \subsection{Aplicación en el host: Modo Automático}
 \label{sec:software:auto}
 
-El controlador autónomo (\texttt{auto\_soccer\_bot/}) cierra el lazo percepción→actuación desde el flujo del ESP32-CAM. La orquestación en \texttt{application.py} comprende cuatro tareas asíncronas: ingesta, percepción, decisión y transporte de comandos.
+El controlador autónomo (\texttt{auto\_soccer\_bot/}) cierra el loop percepción→actuación desde el flujo del ESP32-CAM. La orquestación en \texttt{application.py} comprende cuatro tareas asíncronas: ingesta, percepción, decisión y transporte de comandos.
 
 \paragraph*{1) Ingesta de flujo (\texttt{camera\_manager.py})}
-Un \texttt{httpx.AsyncClient} se conecta a \texttt{http://\textless{}ESP32\_IP\textgreater{}:81/stream} con timeout de conexión y sin timeout de lectura. El límite MJPEG se analiza incrementalmente; sólo se conserva el \emph{último} frame decodificado (descartando obsoletos) para minimizar latencia. Geometría por defecto: QVGA (320\,$\times$\,240); una ruta de \emph{resize} opcional está desactivada.
+Un \texttt{httpx.AsyncClient} se conecta a \texttt{http://\textless{}ESP32\_IP\textgreater{}:81/stream} con timeout de conexión y sin timeout de lectura. El límite MJPEG se analiza incrementalmente; sólo se conserva el \emph{último} frame decodificado (descartando obsoletos) para minimizar latencia. Geometría por defecto: QVGA (320\,$\times$\,240).
 
-\paragraph*{2) Percepción híbrida (\texttt{ball\_detector.py}).}
+\paragraph*{2) Percepción híbrida (\texttt{ball\_detector.py})}
 Combinamos un detector HSV ligero con pasadas programadas de YOLO:
 \begin{itemize}
     \item \textbf{HSV}: umbral en HSV usando \texttt{LOWER\_BALL\_COLOR} / \texttt{UPPER\_BALL\_COLOR}, morfología suave y filtro de área mínima.
@@ -239,7 +239,7 @@ Ambos detectores emiten \((c_x, c_y, \mathrm{area})\). Una regla de prioridad pr
 \paragraph*{3) Decisión (\texttt{robot\_controller.py}).}
 Una FSM gobierna el comportamiento: \texttt{SEARCHING} $\rightarrow$ \texttt{BALL\_DETECTED} $\rightarrow$ \texttt{APPROACHING} $\rightarrow$ \texttt{CAPTURED}. Un corredor objetivo \([x_{\min}, x_{\max}]\) alrededor del centro reduce oscilación; fuera del corredor, el guiado usa giros suaves con \texttt{APPROACH\_TURN\_RATIO}. Ventanas de confirmación y \emph{grace timers} (\texttt{BALL\_CONFIRMATION\_THRESHOLD}, \texttt{BALL\_LOST\_TIMEOUT\_MS}) desbounced transiciones.
 
-\paragraph*{4) Transporte de comandos (\texttt{robot\_communicator.py}).}
+\paragraph*{4) Transporte de comandos (\texttt{robot\_communicator.py})}
 Los comandos se publican a \texttt{http://\textless{}ESP32\_IP\textgreater{}:80/move} con JSON \{\texttt{direction}, \texttt{speed}, \texttt{turn\_ratio}\}. El comunicador desduplica cargas consecutivas idénticas, aplica espaciamiento mínimo entre envíos y reintentos acotados con backoff ante errores transitorios. Se registra éxito/fallo.
 
 \paragraph*{Configuración.}
@@ -270,7 +270,7 @@ Cada submódulo Python incluye su \texttt{requirements.txt}; los entornos se cre
 \section{Experimentos y Resultados}
 \label{sec:results}
 
-Evaluamos (i) los modelos de visión entrenados en \texttt{soccer\_vision/} y (ii) el comportamiento del lazo autónomo integrado (streaming~$\rightarrow$ percepción~$\rightarrow$ decisión~$\rightarrow$ actuación). Salvo mención, se usaron valores por defecto de Ultralytics y el ESP32-CAM transmitió MJPEG QVGA (320$\times$240).
+Evaluamos (i) los modelos de visión entrenados en \texttt{soccer\_vision/} y (ii) el comportamiento del loop autónomo integrado (streaming~$\rightarrow$ percepción~$\rightarrow$ decisión~$\rightarrow$ actuación). Salvo mención, se usaron valores por defecto de Ultralytics y el ESP32-CAM transmitió MJPEG QVGA (320$\times$240).
 
 \subsection{Desempeño del modelo de visión}
 \label{sec:results:vision}
@@ -294,7 +294,7 @@ AP (opponent) & 0.987 \\
 \end{tabular}
 \end{table}
 
-El detector alcanzó AP casi perfecta en \texttt{goal} (0.995) y rendimiento robusto en \texttt{opponent} (0.987). La matriz de confusión normalizada (Fig.~\ref{fig:confusion}) indica 1.00 de acierto en \texttt{goal} y 0.95 en \texttt{opponent} (≈5\% omitido como fondo). La curva PR (Fig.~\ref{fig:pr_curve}) muestra alta precisión consistente a lo largo del recall, lo que respalda su idoneidad para el control downstream.
+El detector alcanzó AP casi perfecta en \texttt{goal} (0.995) y rendimiento robusto en \texttt{opponent} (0.987). La matriz de confusión normalizada (Fig.~\ref{fig:confusion}) indica 1.00 de acierto en \texttt{goal} y 0.95 en \texttt{opponent} (≈5\% omitido como fondo). La curva PR (Fig.~\ref{fig:pr_curve}) muestra alta precisión consistente a lo largo del recall, lo que respalda su idoneidad para alimentar el módulo de control posterior (FSM y actuadores).
 
 \begin{figure}[htbp]
 \centerline{\includegraphics[width=0.9\columnwidth]{confusion_matrix_normalized.png}}
@@ -318,41 +318,43 @@ El detector alcanzó AP casi perfecta en \texttt{goal} (0.995) y rendimiento rob
 \label{sec:results:system}
 
 \paragraph*{Configuración e instrumentación.}
-Evaluamos el lazo autónomo completo bajo el \S~\ref{sec:software:auto}: QVGA (320$\times$240) MJPEG, calidad JPEG~30, YOLO cada $N{=}6$ frames, HSV cada frame y la FSM de \texttt{RobotController.py} con ventanas de confirmación y corredor horizontal. Registramos tiempos en cada etapa, el detector activo (cache de YOLO vs.\ HSV) y estadísticas de emisión de comandos (limitación y desduplicación).
+Evaluamos el loop autónomo completo (streaming $\rightarrow$ percepción $\rightarrow$ decisión $\rightarrow$ actuación) bajo la configuración operativa del streaming MJPEG QVGA (320$\times$240), calidad JPEG~30, YOLO programado cada $N{=}6$ frames, HSV en cada frame, y una FSM en \texttt{RobotController.py} con ventana de confirmación y corredor horizontal de objetivo. Registramos \emph{timestamps} por etapa (decodificación, percepción, decisión, envío de comando), rastreamos qué detector proporcionó la observación activa (cache de YOLO vs.\ HSV) y recogimos estadísticas del plano de control (limitación de tasa y desduplicación de \texttt{/move}).
 
-\paragraph*{Evolución de la percepción: color $\rightarrow$ YOLO $\rightarrow$ híbrido.}
+\paragraph*{Evolución de la percepción: color $\rightarrow$ YOLO $\rightarrow$ híbrido}
 \begin{enumerate}
-\item \emph{Sólo color:} HSV puro entregó respuesta por frame pero fue frágil ante iluminación y fondos. El controlador reaccionaba al signo instantáneo del error lateral del balón, generando pivotes izquierda–derecha (“\emph{thrashing}”) alrededor del centro. La actuación retrasada hacía que el robot “\emph{persiguiera el pasado}”.
-\item \emph{Sólo YOLO:} Mayor robustez a iluminación/oclusiones, pero cómputo más pesado y ráfagas. Corriendo cada frame, la inferencia acumulaba y, con captura ingenua por URL, formaba colas; corriendo esporádico, las pérdidas transitorias causaban \emph{flapping}. Decisiones con frames obsoletos producían sobrecorrecciones.
-\item \emph{Híbrido + ingesta fresca:} La versión final combina ambos y corrige la ingesta. \texttt{BallDetector} ejecuta YOLO cada \texttt{DETECTION\_INTERVAL} y trata detecciones como válidas por \texttt{yolo\_ttl\_frames = max(N$\times$2, 3)}; de otro modo retorna HSV. En paralelo, la ingesta migró a un parser MJPEG con \emph{retención del último frame}, eliminando colas y anclando decisiones al frame más reciente.
+\item \emph{Sólo color (HSV).} La umbralización HSV por frame ofreció gran reactividad, pero fue frágil ante cambios de iluminación y fondos. El controlador reaccionaba al signo instantáneo del error lateral del balón, produciendo pivotes izquierda--derecha (\emph{thrashing}) alrededor del centro. Dado que la actuación retrasa a la sensórica, el robot a menudo \emph{“perseguía el pasado”}: cuando un giro se ejecutaba, el siguiente frame ya sugería la corrección opuesta, amplificando las oscilaciones.
+
+\item \emph{Sólo YOLO.} Sustituir por un detector YOLO mejoró la robustez frente a oclusiones parciales y variaciones de luz, pero introdujo cómputo más pesado y en ráfagas. Ejecutarlo en \emph{cada} frame acumulaba latencia y, combinado con una captura por URL ingenua, generaba colas de frames; programarlo esporádicamente reducía la carga pero las pérdidas transitorias provocaban \emph{flapping} (aproximación $\leftrightarrow$ búsqueda). En ambos casos, parte de las decisiones se basaban en imágenes obsoletas, reintroduciendo sobrecorrecciones.
+
+\item \emph{Híbrido + fresh intake}. El diseño final combina ambos detectores y corrige la ingesta. \texttt{BallDetector} ejecuta YOLO cada \texttt{DETECTION\_INTERVAL} frames y considera válida la última caja durante \texttt{yolo\_ttl\_frames $=$ max(N$\times$2, 3)}; en caso contrario retorna la detección HSV del frame actual. En paralelo, migramos la ingesta a un parser MJPEG con \textbf{HTTPX} y \emph{retención del último frame}, eliminando el “apilamiento” de imágenes y anclando las decisiones a la observación más reciente.
 \end{enumerate}
 
 \paragraph*{Refinamientos del controlador que estabilizaron el rumbo.}
 \begin{enumerate}
-  \item \textbf{Ventana de confirmación (\texttt{BALL\_DETECTED}).} Requiere \texttt{BALL\_CONFIRMATION\_THRESHOLD} detecciones consecutivas antes de pasar a \texttt{APPROACHING\_BALL}, con giros correctivos a velocidad decreciente y \texttt{MAX\_ADJUSTMENT\_TIMEOUT\_MS} que evita abortos prematuros.
-  \item \textbf{Corredor objetivo con giros suaves (\texttt{APPROACHING\_BALL}).} En vez de pivotar por error instantáneo, define umbrales de píxeles 
-  $[x_{\min}, x_{\max}] = [\texttt{TARGET\_ZONE\_X\_MIN}\cdot W,\ \texttt{TARGET\_ZONE\_X\_MAX}\cdot W]$.
-  Si $x$ cae fuera, aplica \texttt{soft\_left/right} con \texttt{APPROACH\_TURN\_RATIO} acotado; de lo contrario avanza \texttt{forward}.
-  \item \textbf{Temporizadores de pérdida.} Brechas cortas activan \texttt{stop} manteniendo el estado; pérdidas prolongadas más allá de \texttt{BALL\_LOST\_TIMEOUT\_MS} regresan a \texttt{SEARCHING\_FOR\_BALL}.
+  \item \textbf{Ventana de confirmación (\texttt{BALL\_DETECTED}).} Ante la primera detección, la FSM exige \texttt{BALL\_CONFIRMATION\_THRESHOLD} detecciones consecutivas (acumuladas en \texttt{ball\_detected\_counter}) antes de comprometerse con \texttt{APPROACHING\_BALL}. Durante esta ventana, se emiten giros correctivos cortos cuya velocidad \emph{decae linealmente}, y un período de gracia \emph{decreciente} (\texttt{MAX\_ADJUSTMENT\_TIMEOUT\_MS}) evita abortos prematuros ante pérdidas breves; además, la dirección de ajuste invierte la última dirección de búsqueda para recentrar con suavidad.
+  \item \textbf{Corredor objetivo con giros suaves (\texttt{APPROACHING\_BALL}).} En lugar de pivotar por el error lateral instantáneo, se definen umbrales en píxeles
+  $[x_{\min}, x_{\max}] = [\texttt{TARGET\_ZONE\_X\_MIN}\cdot W,\ \texttt{TARGET\_ZONE\_X\_MAX}\cdot W]$
+  (con $W$ el ancho del frame). Si el centro del balón $x$ cae fuera, se aplican giros \emph{suaves} (\texttt{soft\_left}/\texttt{soft\_right}) con \texttt{APPROACH\_TURN\_RATIO} acotado; si cae dentro, el robot avanza \texttt{forward}. Este corredor implementa una \emph{zona muerta} que filtra el jitter sin requerir una función explícita de error normalizado.\footnote{Equivalente, en espíritu, a introducir un error lateral normalizado $e_x=\frac{c_x}{W}-0.5$ y aplicar una zona muerta alrededor de $e_x=0$, pero aquí se opera directamente con umbrales en píxeles por simplicidad.}
+  \item \textbf{Temporizadores de pérdida.} Las ausencias breves disparan un \texttt{stop} manteniendo el estado; si la pérdida supera \texttt{BALL\_LOST\_TIMEOUT\_MS}, la FSM vuelve a \texttt{SEARCHING\_FOR\_BALL}. En la fase de ajuste se usa además \texttt{adjustment\_lost\_timer}, cuyo margen se acorta conforme crece la confianza.
 \end{enumerate}
 
 \paragraph*{Resultados observados.}
 \begin{itemize}
-  \item \textbf{Latencia y frescura.} HTTPX + \emph{último frame} removió retrasos por cola; el lazo se mantuvo responsivo.
-  \item \textbf{Robustez.} El programa híbrido (YOLO cada $N$ con TTL, HSV cada frame) sostuvo el seguimiento a través de fallos breves de color y cambios de iluminación sin el costo de correr YOLO en cada frame.
-  \item \textbf{Estabilidad.} La ventana de confirmación, el corredor y los giros suaves eliminaron oscilaciones al cruzar el centro y redujeron el \emph{flapping}.
-  \item \textbf{Plano de comandos.} Desduplicación e intervalo mínimo evitaron inundar \texttt{/move}, produciendo tiempos de actuación más predecibles.
+  \item \textbf{Latencia y “freshness”.} Sustituir la captura por URL de OpenCV por streaming HTTPX con \emph{retención del último frame} eliminó retrasos por colas; el lazo se mantuvo visualmente responsivo sin \emph{backlog} observable.
+  \item \textbf{Robustez.} La agenda híbrida (YOLO cada $N$ con TTL breve + HSV en cada frame) sostuvo el seguimiento a través de fallos puntuales del color y variaciones de iluminación, sin el coste de ejecutar YOLO continuamente.
+  \item \textbf{Estabilidad.} La ventana de confirmación, la zona muerta del corredor y los giros suaves suprimieron las oscilaciones al cruzar el centro y redujeron el \emph{flapping}; los alineamientos de rumbo fueron graduales y monótonos.
+  \item \textbf{Salud del plano de control.} La desduplicación y un intervalo mínimo de envío (\texttt{MIN\_TIME\_BETWEEN\_ANY\_COMMAND\_MS}, \texttt{COMMAND\_SEND\_INTERVAL\_MS}) evitaron inundar \texttt{/move}, logrando tiempos de actuación más previsibles.
 \end{itemize}
 
 \paragraph*{Comprobación del modo manual.}
-El modo por gestos fue fluido con iluminación frontal; los fallos (oclusiones parciales, poses no frontales) se mitigaron al subir umbrales de confianza y mejorar la luz.
+El modo por gestos se comportó de forma fluida con iluminación frontal; los fallos (oclusiones parciales, poses no frontales) se mitigaron elevando los umbrales de confianza de MediaPipe y mejorando la iluminación.
 
 \paragraph*{Limitaciones.}
-Los resultados reflejan una única geometría de cámara (QVGA) y nuestro dataset; la generalización a canchas/luces diversas requiere más pruebas. La FSM autónoma actualmente sólo fusiona el balón; integrar \texttt{goal}/\texttt{opponent} queda como trabajo futuro (Sec.~\ref{sec:conclusion}). Finalmente, el control usa HTTP sin cifrar, adecuado para LAN de laboratorio pero no para redes no confiables.
+Estos resultados corresponden a una única geometría de cámara (QVGA) y a un \emph{dataset} propio; la generalización a otras canchas y condiciones lumínicas requiere pruebas adicionales. La FSM autónoma, por ahora, sólo integra el balón; la fusión de \texttt{goal}/\texttt{opponent} en la decisión queda como trabajo futuro (véase \S~\ref{sec:conclusion}). Finalmente, el control opera sobre HTTP sin cifrado, adecuado en LAN de laboratorio pero no en redes no confiables.
 
 \begin{figure}[htbp]
 \centerline{\includegraphics[width=0.75\columnwidth]{realignment-process.png}}
-\caption{Corridor-based heading realignment with soft turns and confirmation window.}
+\caption{Realineación de rumbo basada en corredor con giros suaves y ventana de confirmación.}
 \label{fig:realign}
 \end{figure}
 
@@ -372,7 +374,7 @@ Este trabajo presentó el \emph{Auto Soccer Bot}, un robot móvil de bajo costo 
   \item Un \textbf{detector entrenado de dos clases} (\texttt{goal}, \texttt{opponent}) con rendimiento fuerte (mAP@0.5 $= 0.991$), reproducible vía \texttt{soccer\_vision}.
 \end{itemize}
 
-A lo largo de los experimentos, la combinación de detección híbrida, ingesta de frames frescos y refinamientos de la FSM resolvió los problemas principales (latencia de flujo, decisiones obsoletas, oscilación de rumbo), resultando en un comportamiento autónomo responsivo y predecible.
+A lo largo de los experimentos, la combinación de detección híbrida, ingesta de fresh frames y refinamientos de la FSM resolvió los problemas principales (latencia de flujo, decisiones obsoletas, oscilación de rumbo), resultando en un comportamiento autónomo responsivo y predecible.
 
 \subsection{Trabajo Futuro}
 
