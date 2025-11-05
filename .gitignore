@@ -18,3 +18,4 @@ dataset/
 label_studio/
 yolo*.pt
 runs/
+*.zip
