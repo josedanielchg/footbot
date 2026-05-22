@@ -1,0 +1,8 @@
+ros2_ws/build/
+ros2_ws/install/
+ros2_ws/log/
+*.bag
+*.db3
+*.mcap
+ros2_ws/frames*.gv
+ros2_ws/frames*.pdf
