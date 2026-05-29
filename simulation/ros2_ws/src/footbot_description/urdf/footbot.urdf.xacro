@@ -1,23 +1,26 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="footbot">
-  <xacro:property name="base_length" value="0.18"/>
-  <xacro:property name="base_width" value="0.13"/>
-  <xacro:property name="base_height" value="0.05"/>
-  <xacro:property name="base_mass" value="0.70"/>
+  <xacro:property name="base_length" value="0.24"/>
+  <xacro:property name="base_width" value="0.19"/>
+  <xacro:property name="base_height" value="0.06"/>
+  <xacro:property name="base_mass" value="0.90"/>
 
-  <xacro:property name="wheel_radius" value="0.035"/>
-  <xacro:property name="wheel_thickness" value="0.018"/>
-  <xacro:property name="wheel_mass" value="0.05"/>
-  <xacro:property name="wheel_y" value="0.075"/>
-  <xacro:property name="wheel_z_from_base" value="-0.030"/>
+  <xacro:property name="wheel_radius" value="0.040"/>
+  <xacro:property name="wheel_thickness" value="0.024"/>
+  <xacro:property name="wheel_mass" value="0.06"/>
+  <xacro:property name="wheel_x" value="0.035"/>
+  <xacro:property name="wheel_y" value="0.105"/>
+  <xacro:property name="wheel_z_from_base" value="0.000"/>
 
-  <xacro:property name="camera_length" value="0.030"/>
-  <xacro:property name="camera_width" value="0.025"/>
-  <xacro:property name="camera_height" value="0.025"/>
-  <xacro:property name="camera_mass" value="0.03"/>
+  <xacro:property name="camera_length" value="0.055"/>
+  <xacro:property name="camera_width" value="0.045"/>
+  <xacro:property name="camera_height" value="0.035"/>
+  <xacro:property name="camera_mass" value="0.02"/>
 
-  <xacro:property name="caster_radius" value="0.015"/>
-  <xacro:property name="caster_mass" value="0.02"/>
+  <xacro:property name="caster_radius" value="0.010"/>
+  <xacro:property name="caster_mass" value="0.01"/>
+  <xacro:property name="caster_x" value="-0.095"/>
+  <xacro:property name="caster_z_from_base" value="-0.030"/>
 
   <xacro:macro name="box_inertial" params="mass x y z">
     <inertial>
@@ -66,7 +69,7 @@
   <joint name="base_footprint_joint" type="fixed">
     <parent link="base_footprint"/>
     <child link="base_link"/>
-    <origin xyz="0 0 0.065" rpy="0 0 0"/>
+    <origin xyz="0 0 ${wheel_radius}" rpy="0 0 0"/>
   </joint>
 
   <link name="base_link">
@@ -76,7 +79,50 @@
         <box size="${base_length} ${base_width} ${base_height}"/>
       </geometry>
       <material name="footbot_blue">
-        <color rgba="0.05 0.25 0.85 1.0"/>
+        <color rgba="0.45 0.50 0.55 1.0"/>
+      </material>
+    </visual>
+    <visual>
+      <origin xyz="0.030 0 ${base_height / 2.0 + 0.004}" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.170 0.170 0.008"/>
+      </geometry>
+      <material name="top_plate_gray">
+        <color rgba="0.68 0.70 0.72 1.0"/>
+      </material>
+    </visual>
+    <visual>
+      <origin xyz="${base_length / 2.0 - 0.008} 0 0.020" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.012 ${base_width} 0.095"/>
+      </geometry>
+      <material name="front_panel_gray">
+        <color rgba="0.60 0.63 0.65 1.0"/>
+      </material>
+    </visual>
+    <visual>
+      <origin xyz="-0.030 ${base_width / 2.0 - 0.008} -0.002" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.150 0.010 0.070"/>
+      </geometry>
+      <material name="side_panel_gray">
+        <color rgba="0.56 0.59 0.61 1.0"/>
+      </material>
+    </visual>
+    <visual>
+      <origin xyz="-0.030 -${base_width / 2.0 - 0.008} -0.002" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.150 0.010 0.070"/>
+      </geometry>
+      <material name="side_panel_gray"/>
+    </visual>
+    <visual>
+      <origin xyz="-0.080 0 -0.004" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.055 0.120 0.032"/>
+      </geometry>
+      <material name="rear_support_gray">
+        <color rgba="0.50 0.53 0.55 1.0"/>
       </material>
     </visual>
     <collision>
@@ -91,7 +137,7 @@
   <joint name="left_wheel_joint" type="continuous">
     <parent link="base_link"/>
     <child link="left_wheel_link"/>
-    <origin xyz="0 ${wheel_y} ${wheel_z_from_base}" rpy="0 0 0"/>
+    <origin xyz="${wheel_x} ${wheel_y} ${wheel_z_from_base}" rpy="0 0 0"/>
     <axis xyz="0 1 0"/>
   </joint>
 
@@ -117,7 +163,7 @@
   <joint name="right_wheel_joint" type="continuous">
     <parent link="base_link"/>
     <child link="right_wheel_link"/>
-    <origin xyz="0 -${wheel_y} ${wheel_z_from_base}" rpy="0 0 0"/>
+    <origin xyz="${wheel_x} -${wheel_y} ${wheel_z_from_base}" rpy="0 0 0"/>
     <axis xyz="0 1 0"/>
   </joint>
 
@@ -141,17 +187,26 @@
   <joint name="camera_joint" type="fixed">
     <parent link="base_link"/>
     <child link="camera_link"/>
-    <origin xyz="0.075 0 0.045" rpy="0 0 0"/>
+    <origin xyz="0.025 0 ${base_height / 2.0 + 0.034}" rpy="0 0 0"/>
   </joint>
 
   <link name="camera_link">
     <visual>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <origin xyz="0 0 0" rpy="0 -0.35 0"/>
       <geometry>
         <box size="${camera_length} ${camera_width} ${camera_height}"/>
       </geometry>
       <material name="camera_green">
-        <color rgba="0.05 0.60 0.20 1.0"/>
+        <color rgba="0.22 0.70 0.34 1.0"/>
+      </material>
+    </visual>
+    <visual>
+      <origin xyz="0.018 0 -0.002" rpy="0 -0.35 0"/>
+      <geometry>
+        <box size="0.020 0.032 0.018"/>
+      </geometry>
+      <material name="camera_lens">
+        <color rgba="0.04 0.05 0.05 1.0"/>
       </material>
     </visual>
     <collision>
@@ -166,7 +221,7 @@
   <joint name="caster_joint" type="fixed">
     <parent link="base_link"/>
     <child link="caster_link"/>
-    <origin xyz="-0.070 0 -0.045" rpy="0 0 0"/>
+    <origin xyz="${caster_x} 0 ${caster_z_from_base}" rpy="0 0 0"/>
   </joint>
 
   <link name="caster_link">
@@ -187,4 +242,25 @@
     </collision>
     <xacro:sphere_inertial mass="${caster_mass}" radius="${caster_radius}"/>
   </link>
+
+  <gazebo>
+    <plugin
+      filename="ignition-gazebo-diff-drive-system"
+      name="ignition::gazebo::systems::DiffDrive">
+      <left_joint>left_wheel_joint</left_joint>
+      <right_joint>right_wheel_joint</right_joint>
+      <wheel_separation>${2.0 * wheel_y}</wheel_separation>
+      <wheel_radius>${wheel_radius}</wheel_radius>
+      <odom_publish_frequency>20</odom_publish_frequency>
+      <topic>/cmd_vel</topic>
+      <max_linear_velocity>0.30</max_linear_velocity>
+      <min_linear_velocity>-0.30</min_linear_velocity>
+      <max_angular_velocity>1.5</max_angular_velocity>
+      <min_angular_velocity>-1.5</min_angular_velocity>
+      <max_linear_acceleration>0.5</max_linear_acceleration>
+      <min_linear_acceleration>-0.5</min_linear_acceleration>
+      <max_angular_acceleration>2.0</max_angular_acceleration>
+      <min_angular_acceleration>-2.0</min_angular_acceleration>
+    </plugin>
+  </gazebo>
 </robot>

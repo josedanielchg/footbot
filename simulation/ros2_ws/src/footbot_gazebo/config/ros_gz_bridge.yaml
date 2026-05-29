@@ -1,0 +1,17 @@
+# Reference bridge topics for the Footbot movement simulation.
+# The launch file uses explicit parameter_bridge arguments for Humble/Fortress
+# compatibility; keep this file aligned with those arguments.
+
+topics:
+  cmd_vel:
+    ros_topic: /cmd_vel
+    ros_type: geometry_msgs/msg/Twist
+    gz_topic: /cmd_vel
+    gz_type: gz.msgs.Twist
+    direction: ROS_TO_GAZEBO
+  odom:
+    ros_topic: /odom
+    ros_type: nav_msgs/msg/Odometry
+    gz_topic: /model/footbot/odometry
+    gz_type: gz.msgs.Odometry
+    direction: GAZEBO_TO_ROS
