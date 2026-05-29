@@ -23,7 +23,7 @@ def generate_launch_description():
     world_file = PathJoinSubstitution([
         FindPackageShare('footbot_gazebo'),
         'worlds',
-        'footbot_empty.sdf',
+        'footbot_camera_test.sdf',
     ])
     gz_launch_file = PathJoinSubstitution([
         FindPackageShare('ros_gz_sim'),
@@ -76,6 +76,8 @@ def generate_launch_description():
         arguments=[
             '/cmd_vel@geometry_msgs/msg/Twist]gz.msgs.Twist',
             '/model/footbot/odometry@nav_msgs/msg/Odometry[gz.msgs.Odometry',
+            '/camera/image_raw@sensor_msgs/msg/Image[gz.msgs.Image',
+            '/camera/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
         ],
         remappings=[
             ('/model/footbot/odometry', '/odom'),

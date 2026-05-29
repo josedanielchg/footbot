@@ -5,6 +5,7 @@ Gazebo integration package for the Footbot simulation.
 Current contents:
 
 - Gazebo worlds
+- Camera test world with visible colored targets
 - ROS/Gazebo bridge reference configuration
 
 Future contents:
@@ -16,4 +17,4 @@ Future contents:
 Not implemented yet:
 
 - Physics tuning
-- Camera sensor simulation
+- External model asset library

@@ -8,16 +8,16 @@ Current contents:
 - Robot frame definitions
 - Visual, collision, and inertial properties
 - Gazebo diff-drive plugin configuration
+- Gazebo camera sensor mounted on `camera_link`
+- `camera_optical_frame` for ROS image consumers
 - RViz configuration
 
 Future contents:
 
 - Mesh assets
 - More accurate geometry and mass properties
-- Sensor frames and plugins
 
 Not implemented yet:
 
 - Physically accurate robot model
-- Camera sensor plugin
 - Hardware controller integration

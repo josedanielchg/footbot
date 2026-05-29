@@ -15,3 +15,15 @@ topics:
     gz_topic: /model/footbot/odometry
     gz_type: gz.msgs.Odometry
     direction: GAZEBO_TO_ROS
+  camera_image:
+    ros_topic: /camera/image_raw
+    ros_type: sensor_msgs/msg/Image
+    gz_topic: /camera/image_raw
+    gz_type: gz.msgs.Image
+    direction: GAZEBO_TO_ROS
+  camera_info:
+    ros_topic: /camera/camera_info
+    ros_type: sensor_msgs/msg/CameraInfo
+    gz_topic: /camera/camera_info
+    gz_type: gz.msgs.CameraInfo
+    direction: GAZEBO_TO_ROS

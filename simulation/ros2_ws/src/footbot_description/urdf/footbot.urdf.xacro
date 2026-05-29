@@ -16,6 +16,7 @@
   <xacro:property name="camera_width" value="0.045"/>
   <xacro:property name="camera_height" value="0.035"/>
   <xacro:property name="camera_mass" value="0.02"/>
+  <xacro:property name="camera_optical_frame_mass" value="0.001"/>
 
   <xacro:property name="caster_radius" value="0.010"/>
   <xacro:property name="caster_mass" value="0.01"/>
@@ -92,9 +93,9 @@
       </material>
     </visual>
     <visual>
-      <origin xyz="${base_length / 2.0 - 0.008} 0 0.020" rpy="0 0 0"/>
+      <origin xyz="${base_length / 2.0 - 0.008} 0 -0.006" rpy="0 0 0"/>
       <geometry>
-        <box size="0.012 ${base_width} 0.095"/>
+        <box size="0.012 ${base_width} 0.040"/>
       </geometry>
       <material name="front_panel_gray">
         <color rgba="0.60 0.63 0.65 1.0"/>
@@ -218,6 +219,20 @@
     <xacro:box_inertial mass="${camera_mass}" x="${camera_length}" y="${camera_width}" z="${camera_height}"/>
   </link>
 
+  <joint name="camera_optical_joint" type="fixed">
+    <parent link="camera_link"/>
+    <child link="camera_optical_frame"/>
+    <origin xyz="${camera_length / 2.0} 0 0" rpy="-1.57079632679 0 -1.57079632679"/>
+  </joint>
+
+  <link name="camera_optical_frame">
+    <xacro:box_inertial
+      mass="${camera_optical_frame_mass}"
+      x="0.001"
+      y="0.001"
+      z="0.001"/>
+  </link>
+
   <joint name="caster_joint" type="fixed">
     <parent link="base_link"/>
     <child link="caster_link"/>
@@ -242,6 +257,34 @@
     </collision>
     <xacro:sphere_inertial mass="${caster_mass}" radius="${caster_radius}"/>
   </link>
+
+  <gazebo reference="camera_link">
+    <sensor name="footbot_camera" type="camera">
+      <always_on>true</always_on>
+      <update_rate>15</update_rate>
+      <visualize>true</visualize>
+      <topic>/camera/image_raw</topic>
+      <camera name="footbot_camera">
+        <camera_info_topic>/camera/camera_info</camera_info_topic>
+        <optical_frame_id>camera_optical_frame</optical_frame_id>
+        <horizontal_fov>1.047</horizontal_fov>
+        <image>
+          <width>640</width>
+          <height>480</height>
+          <format>R8G8B8</format>
+        </image>
+        <clip>
+          <near>0.05</near>
+          <far>10.0</far>
+        </clip>
+        <noise>
+          <type>gaussian</type>
+          <mean>0.0</mean>
+          <stddev>0.0</stddev>
+        </noise>
+      </camera>
+    </sensor>
+  </gazebo>
 
   <gazebo>
     <plugin
