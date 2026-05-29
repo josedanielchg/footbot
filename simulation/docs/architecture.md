@@ -17,9 +17,12 @@ simulation/ros2_ws/    new ROS 2 simulation workspace
 footbot_bringup -> starts Gazebo world
 footbot_bringup -> starts robot_state_publisher
 footbot_bringup -> starts joint_state_publisher
+footbot_bringup -> starts ros_gz_bridge
 footbot_bringup -> spawns footbot from /robot_description
-footbot_description -> provides minimal Xacro model
+footbot_description -> provides Xacro model and Gazebo diff-drive plugin config
 footbot_gazebo -> provides minimal SDF world
+ROS /cmd_vel -> ros_gz_bridge -> Gazebo /cmd_vel -> DiffDrive plugin
+Gazebo /odom -> ros_gz_bridge -> ROS /odom
 ```
 
 ## Planned Integration Flow
@@ -34,14 +37,11 @@ footbot_gazebo -> future Gazebo assets and integration
 
 ## Current Boundaries
 
-The simulation currently creates and spawns a static model only.
+The simulation currently creates a differential-drive model that accepts standard ROS 2 velocity commands.
 
 Not implemented yet:
 
-- Motion control
-- Differential-drive plugin
 - HTTP adapter
-- `/cmd_vel` command mapping
 - Camera sensor plugin
 - OpenCV or MediaPipe migration
 - Changes to existing firmware or control applications

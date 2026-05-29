@@ -7,6 +7,7 @@ Current contents:
 - URDF/Xacro robot model
 - Robot frame definitions
 - Visual, collision, and inertial properties
+- Gazebo diff-drive plugin configuration
 - RViz configuration
 
 Future contents:
@@ -18,5 +19,5 @@ Future contents:
 Not implemented yet:
 
 - Physically accurate robot model
-- Gazebo plugins
-- Controllers
+- Camera sensor plugin
+- Hardware controller integration

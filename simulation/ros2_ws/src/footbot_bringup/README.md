@@ -6,6 +6,8 @@ Current contents:
 
 - Launch files for Gazebo
 - Launch files for robot description
+- Launch setup for ROS/Gazebo movement topic bridge
+- Optional server-only launch mode for headless checks
 
 Future contents:
 
@@ -14,6 +16,5 @@ Future contents:
 
 Not implemented yet:
 
-- Motion control
 - HTTP bridge
 - Perception startup

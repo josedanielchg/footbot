@@ -44,9 +44,9 @@ source install/setup.bash
 
 ## Packages
 
-- `footbot_description`: minimal Xacro model now; future meshes, frames, and richer visual/collision/inertial definitions.
-- `footbot_gazebo`: minimal Gazebo world now; future worlds, models, configs, plugins, and spawn support.
-- `footbot_bringup`: launch flow for starting Gazebo, publishing the robot description, and spawning the robot.
+- `footbot_description`: Xacro model, frame structure, and Gazebo diff-drive plugin configuration.
+- `footbot_gazebo`: Gazebo world and ROS/Gazebo bridge reference configuration.
+- `footbot_bringup`: launch flow for starting Gazebo, publishing the robot description, spawning the robot, and bridging movement topics.
 - `footbot_control`: future control nodes and command mapping.
 - `footbot_perception`: future camera, image processing, and object detection nodes.
 - `footbot_bridge`: future compatibility adapter for the existing HTTP-oriented control flow.
@@ -62,8 +62,28 @@ source /opt/ros/humble/setup.bash
 source install/setup.bash
 ```
 
-Launch the minimal static robot in Gazebo:
+Launch the robot in Gazebo:
 
 ```bash
 ros2 launch footbot_bringup spawn_footbot.launch.py
+```
+
+For a server-only run without the Gazebo GUI:
+
+```bash
+ros2 launch footbot_bringup spawn_footbot.launch.py use_gui:=false
+```
+
+Send a simple forward velocity command:
+
+```bash
+ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist \
+"{linear: {x: 0.12, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}"
+```
+
+Stop the robot:
+
+```bash
+ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist \
+"{linear: {x: 0.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}"
 ```

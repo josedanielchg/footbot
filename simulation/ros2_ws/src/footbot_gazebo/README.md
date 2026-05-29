@@ -5,16 +5,15 @@ Gazebo integration package for the Footbot simulation.
 Current contents:
 
 - Gazebo worlds
+- ROS/Gazebo bridge reference configuration
 
 Future contents:
 
 - SDF/model assets
-- Gazebo configuration
 - Spawn logic
 - Simulation-specific plugin configuration
 
 Not implemented yet:
 
 - Physics tuning
-- Gazebo plugins
-- Motion control
+- Camera sensor simulation
