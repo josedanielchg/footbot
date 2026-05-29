@@ -46,10 +46,10 @@ source install/setup.bash
 
 - `footbot_description`: Xacro model, frame structure, and Gazebo diff-drive plugin configuration.
 - `footbot_gazebo`: Gazebo world and ROS/Gazebo bridge reference configuration.
-- `footbot_bringup`: launch flow for starting Gazebo, publishing the robot description, spawning the robot, and bridging movement topics.
+- `footbot_bringup`: launch flow for starting Gazebo, publishing the robot description, spawning the robot, bridging movement topics, and starting the HTTP command bridge.
 - `footbot_control`: future control nodes and command mapping.
 - `footbot_perception`: future camera, image processing, and object detection nodes.
-- `footbot_bridge`: future compatibility adapter for the existing HTTP-oriented control flow.
+- `footbot_bridge`: ESP32-compatible HTTP `/move` adapter for publishing simulation velocity commands.
 
 ## Launch
 
@@ -74,6 +74,12 @@ For a server-only run without the Gazebo GUI:
 ros2 launch footbot_bringup spawn_footbot.launch.py use_gui:=false
 ```
 
+The launch starts the HTTP bridge by default at:
+
+```text
+http://127.0.0.1:8080
+```
+
 Send a simple forward velocity command:
 
 ```bash
@@ -86,4 +92,18 @@ Stop the robot:
 ```bash
 ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist \
 "{linear: {x: 0.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}"
+```
+
+Or send an ESP32-compatible HTTP command:
+
+```bash
+curl -s -X POST http://127.0.0.1:8080/move \
+  -H 'Content-Type: application/json' \
+  -d '{"direction":"forward","speed":150}'
+```
+
+Check the HTTP bridge:
+
+```bash
+curl -s http://127.0.0.1:8080/status
 ```

@@ -4,11 +4,16 @@ from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
     use_gui = LaunchConfiguration('use_gui')
+    use_http_bridge = LaunchConfiguration('use_http_bridge')
+    http_host = LaunchConfiguration('http_host')
+    http_port = LaunchConfiguration('http_port')
+    cmd_vel_topic = LaunchConfiguration('cmd_vel_topic')
 
     robot_description_file = PathJoinSubstitution([
         FindPackageShare('footbot_description'),
@@ -78,6 +83,18 @@ def generate_launch_description():
         output='screen',
     )
 
+    http_bridge = Node(
+        package='footbot_bridge',
+        executable='http_bridge',
+        output='screen',
+        condition=IfCondition(use_http_bridge),
+        parameters=[{
+            'cmd_vel_topic': cmd_vel_topic,
+            'http_host': http_host,
+            'http_port': ParameterValue(http_port, value_type=int),
+        }],
+    )
+
     spawn_footbot = TimerAction(
         period=3.0,
         actions=[
@@ -103,10 +120,31 @@ def generate_launch_description():
             default_value='true',
             description='Start the Gazebo GUI when true; run server-only when false.',
         ),
+        DeclareLaunchArgument(
+            'use_http_bridge',
+            default_value='true',
+            description='Start the ESP32-compatible HTTP command bridge.',
+        ),
+        DeclareLaunchArgument(
+            'http_host',
+            default_value='127.0.0.1',
+            description='Host address for the HTTP command bridge.',
+        ),
+        DeclareLaunchArgument(
+            'http_port',
+            default_value='8080',
+            description='Port for the HTTP command bridge.',
+        ),
+        DeclareLaunchArgument(
+            'cmd_vel_topic',
+            default_value='/cmd_vel',
+            description='ROS Twist topic used by the HTTP command bridge.',
+        ),
         gazebo_gui,
         gazebo_headless,
         robot_state_publisher,
         joint_state_publisher,
         bridge,
+        http_bridge,
         spawn_footbot,
     ])

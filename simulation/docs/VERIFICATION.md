@@ -142,3 +142,83 @@ ign topic -l | grep -E 'cmd_vel|odom|odometry'
 ```
 
 The current bridge maps Gazebo `/model/footbot/odometry` to ROS `/odom`.
+
+## HTTP Command Bridge
+
+Launch the simulation with the HTTP bridge enabled:
+
+```bash
+cd /media/josedanielchg/Data/Proyectos/Robotica/footbot/simulation/ros2_ws
+source /opt/ros/humble/setup.bash
+source install/setup.bash
+
+ros2 launch footbot_bringup spawn_footbot.launch.py
+```
+
+For a headless check:
+
+```bash
+ros2 launch footbot_bringup spawn_footbot.launch.py use_gui:=false
+```
+
+Check bridge status:
+
+```bash
+curl -s http://127.0.0.1:8080/status
+```
+
+Send HTTP movement commands:
+
+```bash
+curl -s -X POST http://127.0.0.1:8080/move \
+  -H 'Content-Type: application/json' \
+  -d '{"direction":"forward","speed":150}'
+
+curl -s -X POST http://127.0.0.1:8080/move \
+  -H 'Content-Type: application/json' \
+  -d '{"direction":"backward","speed":150}'
+
+curl -s -X POST http://127.0.0.1:8080/move \
+  -H 'Content-Type: application/json' \
+  -d '{"direction":"left","speed":150}'
+
+curl -s -X POST http://127.0.0.1:8080/move \
+  -H 'Content-Type: application/json' \
+  -d '{"direction":"right","speed":150}'
+
+curl -s -X POST http://127.0.0.1:8080/move \
+  -H 'Content-Type: application/json' \
+  -d '{"direction":"soft_left","speed":180,"turn_ratio":0.4}'
+
+curl -s -X POST http://127.0.0.1:8080/move \
+  -H 'Content-Type: application/json' \
+  -d '{"direction":"soft_right","speed":180,"turn_ratio":0.4}'
+
+curl -s -X POST http://127.0.0.1:8080/move \
+  -H 'Content-Type: application/json' \
+  -d '{"direction":"stop","speed":0}'
+```
+
+Check invalid command handling:
+
+```bash
+curl -i -X POST http://127.0.0.1:8080/move \
+  -H 'Content-Type: application/json' \
+  -d '{"direction":"fly","speed":150}'
+```
+
+Expected result:
+
+- Valid HTTP commands return `200`.
+- Invalid movement directions return `400`.
+- `/cmd_vel` receives `geometry_msgs/msg/Twist`.
+- The robot moves in Gazebo for movement commands.
+- The robot stops after `stop` or after the command timeout.
+
+Inspect the ROS output:
+
+```bash
+ros2 topic echo /cmd_vel
+ros2 topic info /cmd_vel
+ros2 topic echo /odom
+```

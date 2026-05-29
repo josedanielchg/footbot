@@ -7,14 +7,14 @@ Current contents:
 - Launch files for Gazebo
 - Launch files for robot description
 - Launch setup for ROS/Gazebo movement topic bridge
+- Launch setup for the ESP32-compatible HTTP command bridge
 - Optional server-only launch mode for headless checks
 
 Future contents:
 
-- Bridge/controller/perception orchestration
+- Controller/perception orchestration
 - Shared runtime configuration
 
 Not implemented yet:
 
-- HTTP bridge
 - Perception startup

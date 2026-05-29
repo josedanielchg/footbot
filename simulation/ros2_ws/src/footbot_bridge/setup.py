@@ -24,6 +24,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            'http_bridge = footbot_bridge.http_bridge:main',
         ],
     },
 )
