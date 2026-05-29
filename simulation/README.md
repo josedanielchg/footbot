@@ -44,11 +44,11 @@ source install/setup.bash
 
 ## Packages
 
-- `footbot_description`: Xacro model, frame structure, and Gazebo diff-drive plugin configuration.
-- `footbot_gazebo`: Gazebo world and ROS/Gazebo bridge reference configuration.
-- `footbot_bringup`: launch flow for starting Gazebo, publishing the robot description, spawning the robot, bridging movement topics, and starting the HTTP command bridge.
-- `footbot_control`: future control nodes and command mapping.
-- `footbot_perception`: future camera, image processing, and object detection nodes.
+- `footbot_description`: Xacro model, frame structure, Gazebo diff-drive plugin configuration, and robot-mounted camera sensor.
+- `footbot_gazebo`: Gazebo worlds and ROS/Gazebo bridge reference configuration.
+- `footbot_bringup`: launch flow for starting Gazebo, publishing the robot description, spawning the robot, bridging movement/camera topics, starting the HTTP command bridge, and launching gesture-control nodes.
+- `footbot_control`: ROS-native gesture-to-velocity command mapping.
+- `footbot_perception`: webcam publishing, MediaPipe hand detection, gesture classification, and future robot-view perception.
 - `footbot_bridge`: ESP32-compatible HTTP `/move` adapter for publishing simulation velocity commands.
 
 ## Launch
@@ -106,4 +106,53 @@ Check the HTTP bridge:
 
 ```bash
 curl -s http://127.0.0.1:8080/status
+```
+
+Check camera topics:
+
+```bash
+ros2 topic list | grep camera
+ros2 topic info /camera/image_raw
+ros2 topic info /camera/camera_info
+```
+
+View the simulated robot camera:
+
+```bash
+rqt_image_view /camera/image_raw
+```
+
+## ROS-Native Gesture Control
+
+Install the MediaPipe/NumPy versions used by the gesture detector:
+
+```bash
+python3 -m pip install --user --force-reinstall "numpy==1.26.4" "mediapipe==0.10.14"
+```
+
+Launch the full simulation with webcam gesture control:
+
+```bash
+ros2 launch footbot_bringup sim_gesture_control.launch.py
+```
+
+Run only gesture perception:
+
+```bash
+ros2 launch footbot_bringup gesture_perception.launch.py
+```
+
+Run only gesture-to-velocity control:
+
+```bash
+ros2 launch footbot_bringup gesture_control.launch.py
+```
+
+ROS-native gesture topics:
+
+```text
+/webcam/image_raw
+/gesture/direction
+/gesture/speed
+/gesture/debug_image
 ```

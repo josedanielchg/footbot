@@ -222,3 +222,150 @@ ros2 topic echo /cmd_vel
 ros2 topic info /cmd_vel
 ros2 topic echo /odom
 ```
+
+## Robot Camera
+
+The simulation includes a camera sensor mounted on `camera_link`. Camera data is
+bridged from Gazebo to ROS 2:
+
+```text
+/camera/image_raw
+/camera/camera_info
+```
+
+Launch the simulation:
+
+```bash
+cd /media/josedanielchg/Data/Proyectos/Robotica/footbot/simulation/ros2_ws
+source /opt/ros/humble/setup.bash
+source install/setup.bash
+
+ros2 launch footbot_bringup spawn_footbot.launch.py
+```
+
+Check camera topics:
+
+```bash
+ros2 topic list | grep camera
+ros2 topic info /camera/image_raw
+ros2 topic info /camera/camera_info
+ros2 topic hz /camera/image_raw
+ros2 topic echo --once /camera/camera_info
+```
+
+Expected result:
+
+- `/camera/image_raw` is `sensor_msgs/msg/Image`.
+- `/camera/camera_info` is `sensor_msgs/msg/CameraInfo`.
+- Image dimensions are `640x480`.
+- `camera_info.header.frame_id` is `camera_optical_frame`.
+- Image publishing is near `15 Hz`.
+
+View the camera stream:
+
+```bash
+rqt_image_view /camera/image_raw
+```
+
+The default Gazebo world includes colored objects in front of the robot so the
+camera view is easy to recognize.
+
+Check camera frames:
+
+```bash
+ros2 run tf2_tools view_frames
+ros2 run tf2_ros tf2_echo base_link camera_link
+ros2 run tf2_ros tf2_echo camera_link camera_optical_frame
+```
+
+Expected result:
+
+- `camera_link` is attached to `base_link`.
+- `camera_optical_frame` is attached to `camera_link`.
+- The camera topics keep publishing while the robot moves.
+
+## ROS-Native Gesture Control
+
+Install the MediaPipe/NumPy versions used by the gesture detector:
+
+```bash
+python3 -m pip install --user --force-reinstall "numpy==1.26.4" "mediapipe==0.10.14"
+```
+
+Build and source the workspace:
+
+```bash
+cd /media/josedanielchg/Data/Proyectos/Robotica/footbot/simulation/ros2_ws
+source /opt/ros/humble/setup.bash
+colcon build --symlink-install
+source install/setup.bash
+```
+
+Check executables:
+
+```bash
+ros2 pkg executables footbot_perception
+ros2 pkg executables footbot_control
+```
+
+Expected result:
+
+- `footbot_perception webcam_publisher`
+- `footbot_perception hand_detector`
+- `footbot_control gesture_to_cmd_vel`
+
+Test gesture-to-velocity control without a webcam:
+
+```bash
+ros2 run footbot_control gesture_to_cmd_vel
+```
+
+In another terminal:
+
+```bash
+ros2 topic echo /cmd_vel
+```
+
+Publish fake gesture messages:
+
+```bash
+ros2 topic pub --once /gesture/speed std_msgs/msg/Float32 "{data: 0.6}"
+ros2 topic pub --once /gesture/direction std_msgs/msg/String "{data: forward}"
+```
+
+Expected result:
+
+- `/cmd_vel.linear.x` becomes positive.
+- `/cmd_vel` returns to zero after the command timeout.
+
+Test the webcam publisher:
+
+```bash
+ros2 run footbot_perception webcam_publisher --ros-args -p camera_index:=0
+ros2 topic info /webcam/image_raw
+ros2 topic hz /webcam/image_raw
+```
+
+Test hand detection:
+
+```bash
+ros2 run footbot_perception hand_detector
+ros2 topic echo /gesture/direction
+ros2 topic echo /gesture/speed
+rqt_image_view /gesture/debug_image
+```
+
+Launch the full simulation with ROS-native gesture control:
+
+```bash
+ros2 launch footbot_bringup sim_gesture_control.launch.py
+```
+
+Expected result:
+
+- Gazebo starts.
+- The HTTP `/move` bridge remains available.
+- Webcam gesture topics are published.
+- Gesture commands publish `/cmd_vel`.
+- The robot moves from gestures.
+- Gazebo camera topics still publish.

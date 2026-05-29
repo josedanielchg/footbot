@@ -24,6 +24,8 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            'hand_detector = footbot_perception.hand_detector_node:main',
+            'webcam_publisher = footbot_perception.webcam_publisher_node:main',
         ],
     },
 )

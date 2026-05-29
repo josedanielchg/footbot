@@ -24,6 +24,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            'gesture_to_cmd_vel = footbot_control.gesture_to_cmd_vel_node:main',
         ],
     },
 )
