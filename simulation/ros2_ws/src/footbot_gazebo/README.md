@@ -6,6 +6,7 @@ Current contents:
 
 - Gazebo worlds
 - Camera test world with visible colored targets
+- Ball-following world with an orange target ball
 - ROS/Gazebo bridge reference configuration
 
 Future contents:

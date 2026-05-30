@@ -24,6 +24,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            'ball_detector = footbot_perception.ball_detector_node:main',
             'debug_image_viewer = footbot_perception.debug_image_viewer_node:main',
             'hand_detector = footbot_perception.hand_detector_node:main',
             'webcam_publisher = footbot_perception.webcam_publisher_node:main',

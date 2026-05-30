@@ -7,6 +7,7 @@ Current contents:
 - `webcam_publisher`: publishes a computer webcam on `/webcam/image_raw`.
 - `hand_detector`: runs MediaPipe Hands on a ROS image topic.
 - `debug_image_viewer`: opens an OpenCV window for annotated gesture images.
+- `ball_detector`: detects an orange ball from the simulated robot camera.
 - Gesture classification helpers adapted from the legacy `manual_control/` app.
 - Optional debug image publishing on `/gesture/debug_image`.
 
@@ -16,6 +17,13 @@ Published gesture topics:
 /gesture/direction    std_msgs/msg/String
 /gesture/speed        std_msgs/msg/Float32
 /gesture/debug_image  sensor_msgs/msg/Image
+```
+
+Published ball topics:
+
+```text
+/ball_detection    vision_msgs/msg/Detection2D
+/ball/debug_image  sensor_msgs/msg/Image
 ```
 
 Install the MediaPipe/NumPy versions used by `hand_detector`:
@@ -48,8 +56,20 @@ Or launch perception with the debug window enabled:
 ros2 launch footbot_bringup gesture_perception.launch.py show_debug_view:=true
 ```
 
+Run ball detection:
+
+```bash
+ros2 run footbot_perception ball_detector
+```
+
+Show the ball detector debug image:
+
+```bash
+ros2 run footbot_perception debug_image_viewer \
+  --ros-args -p image_topic:=/ball/debug_image
+```
+
 Not implemented yet:
 
-- Object detection
-- Robot-camera autonomy
+- ML object detection
 - Gesture calibration UI

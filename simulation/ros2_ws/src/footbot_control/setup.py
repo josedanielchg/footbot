@@ -24,6 +24,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            'ball_follower = footbot_control.ball_follower_node:main',
             'gesture_to_cmd_vel = footbot_control.gesture_to_cmd_vel_node:main',
         ],
     },

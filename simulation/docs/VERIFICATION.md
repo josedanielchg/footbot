@@ -377,3 +377,71 @@ Expected result:
 - Gesture commands publish `/cmd_vel`.
 - The robot moves from gestures.
 - Gazebo camera topics still publish.
+
+## Autonomous Ball Following
+
+Build and source the workspace:
+
+```bash
+cd /media/josedanielchg/Data/Proyectos/Robotica/footbot/simulation/ros2_ws
+source /opt/ros/humble/setup.bash
+colcon build --symlink-install
+source install/setup.bash
+```
+
+Check executables:
+
+```bash
+ros2 pkg executables footbot_perception | grep ball_detector
+ros2 pkg executables footbot_control | grep ball_follower
+```
+
+Launch the autonomous mode:
+
+```bash
+ros2 launch footbot_bringup ball_following.launch.py
+```
+
+Launch with a detector debug window:
+
+```bash
+ros2 launch footbot_bringup ball_following.launch.py show_debug_view:=true
+```
+
+Inspect topics:
+
+```bash
+ros2 topic list | grep -E 'camera|ball|cmd_vel|odom'
+ros2 topic info /ball_detection
+ros2 topic echo /ball_detection
+ros2 topic echo /cmd_vel
+```
+
+Expected result:
+
+- `/ball_detection` publishes `vision_msgs/msg/Detection2D` when the orange ball is visible.
+- `/ball/debug_image` shows the ball detection overlay.
+- The robot rotates toward off-center ball positions.
+- The robot drives toward a centered ball.
+- The robot stops when the ball is close or no longer visible.
+
+Test the ball follower without the detector:
+
+```bash
+ros2 run footbot_control ball_follower
+ros2 topic echo /cmd_vel
+```
+
+Publish a centered fake detection:
+
+```bash
+ros2 topic pub --once /ball_detection vision_msgs/msg/Detection2D \
+"{header: {frame_id: camera_optical_frame}, bbox: {center: {position: {x: 320.0, y: 240.0}, theta: 0.0}, size_x: 40.0, size_y: 40.0}, results: [{hypothesis: {class_id: ball, score: 0.9}}]}"
+```
+
+Expected result:
+
+- Centered/far detections publish positive `linear.x`.
+- Left detections publish positive `angular.z`.
+- Right detections publish negative `angular.z`.
+- Close or stale detections publish zero Twist.

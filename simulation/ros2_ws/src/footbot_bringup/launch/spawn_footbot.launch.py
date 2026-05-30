@@ -14,6 +14,7 @@ def generate_launch_description():
     http_host = LaunchConfiguration('http_host')
     http_port = LaunchConfiguration('http_port')
     cmd_vel_topic = LaunchConfiguration('cmd_vel_topic')
+    world_name = LaunchConfiguration('world_name')
 
     robot_description_file = PathJoinSubstitution([
         FindPackageShare('footbot_description'),
@@ -23,7 +24,7 @@ def generate_launch_description():
     world_file = PathJoinSubstitution([
         FindPackageShare('footbot_gazebo'),
         'worlds',
-        'footbot_camera_test.sdf',
+        world_name,
     ])
     gz_launch_file = PathJoinSubstitution([
         FindPackageShare('ros_gz_sim'),
@@ -141,6 +142,11 @@ def generate_launch_description():
             'cmd_vel_topic',
             default_value='/cmd_vel',
             description='ROS Twist topic used by the HTTP command bridge.',
+        ),
+        DeclareLaunchArgument(
+            'world_name',
+            default_value='footbot_camera_test.sdf',
+            description='Gazebo world file from footbot_gazebo/worlds.',
         ),
         gazebo_gui,
         gazebo_headless,

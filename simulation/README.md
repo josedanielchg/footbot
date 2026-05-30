@@ -46,9 +46,9 @@ source install/setup.bash
 
 - `footbot_description`: Xacro model, frame structure, Gazebo diff-drive plugin configuration, and robot-mounted camera sensor.
 - `footbot_gazebo`: Gazebo worlds and ROS/Gazebo bridge reference configuration.
-- `footbot_bringup`: launch flow for starting Gazebo, publishing the robot description, spawning the robot, bridging movement/camera topics, starting the HTTP command bridge, and launching gesture-control nodes.
-- `footbot_control`: ROS-native gesture-to-velocity command mapping.
-- `footbot_perception`: webcam publishing, MediaPipe hand detection, gesture classification, and future robot-view perception.
+- `footbot_bringup`: launch flow for Gazebo, robot spawning, topic bridges, HTTP control, gesture control, and autonomous ball following.
+- `footbot_control`: ROS-native gesture-to-velocity and ball-following command mapping.
+- `footbot_perception`: webcam publishing, MediaPipe hand detection, gesture classification, and OpenCV ball detection.
 - `footbot_bridge`: ESP32-compatible HTTP `/move` adapter for publishing simulation velocity commands.
 
 ## Launch
@@ -162,3 +162,30 @@ ROS-native gesture topics:
 /gesture/speed
 /gesture/debug_image
 ```
+
+## Autonomous Ball Following
+
+Launch the autonomous simulation mode:
+
+```bash
+ros2 launch footbot_bringup ball_following.launch.py
+```
+
+Launch with the ball detector debug window:
+
+```bash
+ros2 launch footbot_bringup ball_following.launch.py show_debug_view:=true
+```
+
+Ball follower topics:
+
+```text
+/camera/image_raw
+/ball_detection
+/ball/debug_image
+/cmd_vel
+```
+
+Only run one `/cmd_vel` owner at a time. Use separate launch modes for HTTP/manual control, gesture control, and autonomous ball following.
+
+The default detector uses HSV orange segmentation with a permissive circularity threshold tuned for the simulated camera view.
