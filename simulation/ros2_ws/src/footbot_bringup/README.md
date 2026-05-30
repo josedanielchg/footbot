@@ -21,6 +21,12 @@ ros2 launch footbot_bringup gesture_control.launch.py
 ros2 launch footbot_bringup sim_gesture_control.launch.py
 ```
 
+Open the gesture debug image window with:
+
+```bash
+ros2 launch footbot_bringup sim_gesture_control.launch.py show_debug_view:=true
+```
+
 Future contents:
 
 - Shared runtime configuration

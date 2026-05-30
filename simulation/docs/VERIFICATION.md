@@ -312,6 +312,7 @@ Expected result:
 
 - `footbot_perception webcam_publisher`
 - `footbot_perception hand_detector`
+- `footbot_perception debug_image_viewer`
 - `footbot_control gesture_to_cmd_vel`
 
 Test gesture-to-velocity control without a webcam:
@@ -352,7 +353,7 @@ Test hand detection:
 ros2 run footbot_perception hand_detector
 ros2 topic echo /gesture/direction
 ros2 topic echo /gesture/speed
-rqt_image_view /gesture/debug_image
+ros2 run footbot_perception debug_image_viewer
 ```
 
 Launch the full simulation with ROS-native gesture control:
@@ -361,11 +362,18 @@ Launch the full simulation with ROS-native gesture control:
 ros2 launch footbot_bringup sim_gesture_control.launch.py
 ```
 
+Launch with a local MediaPipe-style debug window:
+
+```bash
+ros2 launch footbot_bringup sim_gesture_control.launch.py show_debug_view:=true
+```
+
 Expected result:
 
 - Gazebo starts.
 - The HTTP `/move` bridge remains available.
 - Webcam gesture topics are published.
+- A debug window can show hand landmarks, speed, and direction.
 - Gesture commands publish `/cmd_vel`.
 - The robot moves from gestures.
 - Gazebo camera topics still publish.

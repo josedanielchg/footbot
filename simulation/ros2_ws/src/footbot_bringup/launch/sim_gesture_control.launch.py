@@ -13,6 +13,7 @@ def generate_launch_description():
     cmd_vel_topic = LaunchConfiguration('cmd_vel_topic')
     camera_index = LaunchConfiguration('camera_index')
     publish_debug_image = LaunchConfiguration('publish_debug_image')
+    show_debug_view = LaunchConfiguration('show_debug_view')
 
     bringup_share = FindPackageShare('footbot_bringup')
     simulation_launch = PathJoinSubstitution([
@@ -47,6 +48,7 @@ def generate_launch_description():
         launch_arguments={
             'camera_index': camera_index,
             'publish_debug_image': publish_debug_image,
+            'show_debug_view': show_debug_view,
         }.items(),
     )
 
@@ -92,6 +94,11 @@ def generate_launch_description():
             'publish_debug_image',
             default_value='true',
             description='Publish annotated gesture debug images.',
+        ),
+        DeclareLaunchArgument(
+            'show_debug_view',
+            default_value='false',
+            description='Open an OpenCV window for annotated gesture images.',
         ),
         simulation,
         perception,

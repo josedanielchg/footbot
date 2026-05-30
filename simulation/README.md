@@ -136,6 +136,12 @@ Launch the full simulation with webcam gesture control:
 ros2 launch footbot_bringup sim_gesture_control.launch.py
 ```
 
+Launch with a local MediaPipe-style debug window:
+
+```bash
+ros2 launch footbot_bringup sim_gesture_control.launch.py show_debug_view:=true
+```
+
 Run only gesture perception:
 
 ```bash

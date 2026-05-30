@@ -118,6 +118,7 @@ class HandDetectorNode(Node):
         self.publish_gesture(direction, speed)
 
         if self.debug_publisher is not None:
+            self.draw_status_overlay(output_frame, direction, speed)
             self.publish_debug_image(output_frame, image_msg.header)
 
     def detect_hands(self, frame):
@@ -196,6 +197,32 @@ class HandDetectorNode(Node):
         speed_msg = Float32()
         speed_msg.data = float(normalize_speed(speed))
         self.speed_publisher.publish(speed_msg)
+
+    @staticmethod
+    def draw_status_overlay(frame, direction, speed):
+        """Draw the current command state on the debug image."""
+        color = (0, 255, 255)
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        cv2.putText(
+            frame,
+            'Speed: %d' % int(speed),
+            (12, 34),
+            font,
+            0.9,
+            color,
+            2,
+            cv2.LINE_AA,
+        )
+        cv2.putText(
+            frame,
+            'Direction: %s' % direction,
+            (12, 70),
+            font,
+            0.9,
+            color,
+            2,
+            cv2.LINE_AA,
+        )
 
     def publish_debug_image(self, frame, input_header):
         """Publish an annotated debug image."""
