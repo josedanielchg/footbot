@@ -49,3 +49,8 @@ Not implemented yet:
 - Hardware controller integration
 - Navigation
 - Advanced command smoothing
+
+See also:
+
+- `simulation/docs/ARCHITECTURE.md`
+- `simulation/docs/MODES.md`

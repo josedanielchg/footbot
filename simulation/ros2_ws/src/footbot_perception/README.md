@@ -73,3 +73,8 @@ Not implemented yet:
 
 - ML object detection
 - Gesture calibration UI
+
+See also:
+
+- `simulation/docs/PERCEPTION_AND_DATASETS.md`
+- `simulation/docs/MODES.md`

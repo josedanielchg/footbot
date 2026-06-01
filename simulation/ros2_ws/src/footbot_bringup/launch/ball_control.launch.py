@@ -97,6 +97,11 @@ def generate_launch_description():
     show_debug_view = LaunchConfiguration('show_debug_view')
     publish_debug_image = LaunchConfiguration('publish_debug_image')
     rotate_with_ball_enabled = LaunchConfiguration('rotate_with_ball_enabled')
+    ball_control_config = PathJoinSubstitution([
+        FindPackageShare('footbot_soccer_behavior'),
+        'config',
+        'ball_control.yaml',
+    ])
 
     ball_detector = Node(
         package='footbot_perception',
@@ -116,7 +121,7 @@ def generate_launch_description():
         package='footbot_soccer_behavior',
         executable='ball_state_estimator',
         output='screen',
-        parameters=[{
+        parameters=[ball_control_config, {
             'detection_topic': detection_topic,
             'ball_state_topic': ball_state_topic,
         }],
@@ -126,7 +131,7 @@ def generate_launch_description():
         package='footbot_soccer_behavior',
         executable='ball_control_fsm',
         output='screen',
-        parameters=[{
+        parameters=[ball_control_config, {
             'ball_state_topic': ball_state_topic,
             'cmd_vel_topic': cmd_vel_topic,
             'fsm_state_topic': fsm_state_topic,

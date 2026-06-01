@@ -1,22 +1,18 @@
 # footbot_gazebo
 
-Gazebo integration package for the Footbot simulation.
+Gazebo worlds, models, bridge reference config, and simulation plugins.
 
-Current contents:
+## Contents
 
-- Gazebo worlds
-- Camera test world with visible colored targets
-- Ball-following world with an orange target ball
-- Ball-control world and dynamic orange ball model
-- Multi-lane ball-control world with divider and boundary walls
-- Ball drag Gazebo system plugin for predictable rolling resistance
-- Opponent-detection world with FootBot-like robot placeholders
-- Soccer field world with goals, walls, a center ball, and two mirrored teams
-- ROS/Gazebo bridge reference configuration
+- Worlds for camera tests, ball following, ball control, opponent detection, and soccer-field visualization.
+- `models/orange_ball` for the dynamic orange ball.
+- `src/BallDragSystem.cc`, a Gazebo system plugin that adds predictable ball rolling resistance.
+- `config/ros_gz_bridge.yaml`, a reference bridge mapping file.
 
-Worlds:
+## Important Worlds
 
 ```text
+footbot_empty.sdf
 footbot_camera_test.sdf
 footbot_ball_follow.sdf
 footbot_ball_control.sdf
@@ -25,29 +21,10 @@ footbot_opponent_detection.sdf
 footbot_soccer_field.sdf
 ```
 
-Models:
+Validate a world:
 
-```text
-models/orange_ball
+```bash
+ign sdf -k simulation/ros2_ws/src/footbot_gazebo/worlds/footbot_soccer_field.sdf
 ```
 
-The dynamic orange ball uses contact friction, reduced bounce, velocity decay,
-and the `footbot_ball_drag_system` Gazebo plugin. The plugin applies horizontal
-and angular drag to `ball_link` so the ball stops after contact instead of
-rolling indefinitely like an ideal sphere.
-
-The opponent world is designed for YOLO pipeline tests and dataset capture. It
-uses static FootBot-like robot placeholders so future robot-vs-robot scenarios
-can grow from the same visual language. The placeholders are not guaranteed to
-be recognized by a pretrained COCO model without later fine-tuning.
-
-Future contents:
-
-- SDF/model assets
-- Spawn logic
-- Simulation-specific plugin configuration
-
-Not implemented yet:
-
-- Physics tuning
-- External model asset library
+See `simulation/docs/WORLDS_AND_SCENARIOS.md` for the world catalog and plugin notes.

@@ -1,10 +1,7 @@
 from dataclasses import dataclass
 
+from footbot_common.math_utils import clamp
 from geometry_msgs.msg import Twist
-
-
-def clamp(value, minimum, maximum):
-    return max(minimum, min(maximum, value))
 
 
 @dataclass

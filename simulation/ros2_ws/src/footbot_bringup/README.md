@@ -1,105 +1,34 @@
 # footbot_bringup
 
-Launch and orchestration package for the Footbot simulation.
+Launch and orchestration package for the FootBot simulation.
 
-Current contents:
+## Launch Modes
 
-- Launch files for Gazebo
-- Launch files for robot description
-- Launch setup for ROS/Gazebo movement topic bridge
-- Launch setup for ROS/Gazebo camera topic bridge
-- Launch setup for the ESP32-compatible HTTP command bridge
-- Launch setup for ROS-native webcam gesture perception
-- Launch setup for ROS-native gesture-to-velocity control
-- Launch setup for autonomous ball following
-- Launch setup for deterministic soccer ball control
-- Launch setup for YOLO opponent detection
-- Launch setup for the soccer field layout scene
-- Optional server-only launch mode for headless checks
+| Launch file | Purpose | `/cmd_vel` owner |
+| --- | --- | --- |
+| `spawn_footbot.launch.py` | Base robot, Gazebo, camera/odom bridge, optional HTTP bridge. | HTTP bridge or manual ROS topic commands |
+| `sim_gesture_control.launch.py` | Full ROS-native webcam gesture control. | `gesture_to_cmd_vel` |
+| `gesture_perception.launch.py` | Webcam + MediaPipe perception only. | none |
+| `gesture_control.launch.py` | Gesture topics to velocity commands only. | `gesture_to_cmd_vel` |
+| `ball_following.launch.py` | Simple HSV ball follower. | `ball_follower` |
+| `ball_control.launch.py` | Current deterministic soccer ball-control behavior. | `ball_control_fsm` |
+| `ball_control_multi.launch.py` | Three isolated ball-control test lanes. | one FSM per lane topic |
+| `opponent_detection.launch.py` | Opponent-detection test world and YOLO node. | none |
+| `soccer_detection.launch.py` | Soccer field camera with goal/opponent detection. | none |
+| `soccer_field.launch.py` | Field, walls, goals, teams, and center ball visualization. | none |
 
-Gesture-control launch files:
+Run only one control-owning mode at a time.
 
-```bash
-ros2 launch footbot_bringup gesture_perception.launch.py
-ros2 launch footbot_bringup gesture_control.launch.py
-ros2 launch footbot_bringup sim_gesture_control.launch.py
-```
-
-Open the gesture debug image window with:
+## Common Commands
 
 ```bash
-ros2 launch footbot_bringup sim_gesture_control.launch.py show_debug_view:=true
-```
-
-Autonomous ball-following launch:
-
-```bash
-ros2 launch footbot_bringup ball_following.launch.py
-ros2 launch footbot_bringup ball_following.launch.py show_debug_view:=true
-```
-
-The autonomous launch disables the HTTP command bridge by default so `ball_follower` owns `/cmd_vel`.
-
-Soccer ball-control launch:
-
-```bash
-ros2 launch footbot_bringup ball_control.launch.py
-ros2 launch footbot_bringup ball_control.launch.py scenario:=misaligned show_debug_view:=true
-```
-
-This mode starts the ball-control world, spawns one robot and one dynamic ball,
-starts HSV ball detection, estimates `/soccer/ball_state`, and runs the
-ball-control FSM as the only `/cmd_vel` owner.
-
-Multi-lane soccer ball-control launch:
-
-```bash
-ros2 launch footbot_bringup ball_control_multi.launch.py
-ros2 launch footbot_bringup ball_control_multi.launch.py show_debug_view:=true
-```
-
-This mode starts three isolated wall-separated lanes in one Gazebo world. Each
-lane has its own robot, ball, camera topic, detector, estimator, FSM, and
-command topic under `/ball_control/<lane>/`. The lanes cover a normal front
-ball, a farther ball, and a ball that starts behind the robot.
-
-YOLO opponent-detection launch:
-
-```bash
-ros2 launch footbot_bringup opponent_detection.launch.py
-ros2 launch footbot_bringup opponent_detection.launch.py show_debug_view:=true
-```
-
-This mode starts the opponent test world and perception nodes only. It does not
-start HTTP control, gesture control, or ball following.
-
-Soccer field scene:
-
-```bash
-ros2 launch footbot_bringup soccer_field.launch.py
-```
-
-This opens the field, goals, walls, center ball, and two static three-robot
-teams. It does not spawn a controlled robot or start control nodes.
-
-Soccer field detection:
-
-```bash
-ros2 launch footbot_bringup soccer_detection.launch.py
+ros2 launch footbot_bringup spawn_footbot.launch.py
+ros2 launch footbot_bringup ball_control.launch.py scenario:=front show_debug_view:=true
 ros2 launch footbot_bringup soccer_detection.launch.py show_debug_view:=true
 ```
 
-This opens the soccer field, bridges the blue goalkeeper camera, and starts
-YOLO-based goal and opponent detector nodes. Pass custom weights with:
+See the simulation docs:
 
-```bash
-ros2 launch footbot_bringup soccer_detection.launch.py model_path:=/path/to/best.pt
-```
-
-Future contents:
-
-- Shared runtime configuration
-
-Not implemented yet:
-
-- Navigation startup
+- `simulation/docs/MODES.md`
+- `simulation/docs/BALL_CONTROL.md`
+- `simulation/docs/ARCHITECTURE.md`
