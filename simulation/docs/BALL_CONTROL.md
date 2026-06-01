@@ -5,6 +5,17 @@ uses deterministic perception, state estimation, skills, and an FSM.
 
 ## Launch
 
+Build and source first:
+
+```bash
+cd /media/josedanielchg/Data/Proyectos/Robotica/footbot/simulation/ros2_ws
+source /opt/ros/humble/setup.bash
+colcon build --symlink-install
+source install/setup.bash
+```
+
+Run the single-scenario ball-control behavior:
+
 ```bash
 ros2 launch footbot_bringup ball_control.launch.py scenario:=front show_debug_view:=true
 ```
@@ -19,6 +30,72 @@ far
 close
 misaligned
 ```
+
+## Multi-Lane Test
+
+The multi-lane launch starts three wall-separated scenarios in one Gazebo world:
+
+```text
+front   ball starts in front of the robot
+far     ball starts farther away
+behind  ball starts behind the robot, so the robot must rotate to search
+```
+
+Launch without debug windows:
+
+```bash
+ros2 launch footbot_bringup ball_control_multi.launch.py
+```
+
+Launch with debug image windows:
+
+```bash
+ros2 launch footbot_bringup ball_control_multi.launch.py show_debug_view:=true
+```
+
+In another terminal, source the workspace:
+
+```bash
+source /opt/ros/humble/setup.bash
+source /media/josedanielchg/Data/Proyectos/Robotica/footbot/simulation/ros2_ws/install/setup.bash
+```
+
+List the lane-specific topics:
+
+```bash
+ros2 topic list | grep ball_control
+```
+
+Inspect FSM state for each lane:
+
+```bash
+ros2 topic echo /ball_control/front/soccer/fsm_state
+ros2 topic echo /ball_control/far/soccer/fsm_state
+ros2 topic echo /ball_control/behind/soccer/fsm_state
+```
+
+Inspect estimated ball state:
+
+```bash
+ros2 topic echo /ball_control/front/soccer/ball_state
+ros2 topic echo /ball_control/far/soccer/ball_state
+ros2 topic echo /ball_control/behind/soccer/ball_state
+```
+
+Inspect velocity commands:
+
+```bash
+ros2 topic echo /ball_control/front/cmd_vel
+ros2 topic echo /ball_control/far/cmd_vel
+ros2 topic echo /ball_control/behind/cmd_vel
+```
+
+Expected behavior:
+
+- `front`: detects the ball quickly and approaches it.
+- `far`: approaches more slowly because the ball starts farther away.
+- `behind`: rotates to search before it can align with the ball.
+- Each lane uses isolated topics under `/ball_control/<lane>/`.
 
 ## Topics
 
