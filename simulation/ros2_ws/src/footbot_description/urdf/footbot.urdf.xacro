@@ -1,5 +1,10 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="footbot">
+  <xacro:arg name="cmd_vel_topic" default="/cmd_vel"/>
+  <xacro:arg name="camera_image_topic" default="/camera/image_raw"/>
+  <xacro:arg name="camera_info_topic" default="/camera/camera_info"/>
+  <xacro:arg name="camera_frame_id" default="camera_optical_frame"/>
+
   <xacro:property name="base_length" value="0.24"/>
   <xacro:property name="base_width" value="0.19"/>
   <xacro:property name="base_height" value="0.06"/>
@@ -263,10 +268,10 @@
       <always_on>true</always_on>
       <update_rate>15</update_rate>
       <visualize>true</visualize>
-      <topic>/camera/image_raw</topic>
+      <topic>$(arg camera_image_topic)</topic>
       <camera name="footbot_camera">
-        <camera_info_topic>/camera/camera_info</camera_info_topic>
-        <optical_frame_id>camera_optical_frame</optical_frame_id>
+        <camera_info_topic>$(arg camera_info_topic)</camera_info_topic>
+        <optical_frame_id>$(arg camera_frame_id)</optical_frame_id>
         <horizontal_fov>1.047</horizontal_fov>
         <image>
           <width>640</width>
@@ -295,7 +300,7 @@
       <wheel_separation>${2.0 * wheel_y}</wheel_separation>
       <wheel_radius>${wheel_radius}</wheel_radius>
       <odom_publish_frequency>20</odom_publish_frequency>
-      <topic>/cmd_vel</topic>
+      <topic>$(arg cmd_vel_topic)</topic>
       <max_linear_velocity>0.30</max_linear_velocity>
       <min_linear_velocity>-0.30</min_linear_velocity>
       <max_angular_velocity>1.5</max_angular_velocity>
