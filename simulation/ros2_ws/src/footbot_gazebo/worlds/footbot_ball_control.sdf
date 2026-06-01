@@ -6,6 +6,15 @@
     <atmosphere type="adiabatic"/>
 
     <plugin filename="ignition-gazebo-physics-system" name="ignition::gazebo::systems::Physics"/>
+    <plugin filename="libfootbot_ball_drag_system.so" name="footbot_gazebo::BallDragSystem">
+      <link_name>ball_link</link_name>
+      <linear_damping>0.18</linear_damping>
+      <angular_damping>0.0012</angular_damping>
+      <max_force>0.30</max_force>
+      <max_torque>0.015</max_torque>
+      <stop_linear_speed>0.02</stop_linear_speed>
+      <stop_angular_speed>0.35</stop_angular_speed>
+    </plugin>
     <plugin filename="ignition-gazebo-user-commands-system" name="ignition::gazebo::systems::UserCommands"/>
     <plugin filename="ignition-gazebo-scene-broadcaster-system" name="ignition::gazebo::systems::SceneBroadcaster"/>
     <plugin filename="ignition-gazebo-sensors-system" name="ignition::gazebo::systems::Sensors">

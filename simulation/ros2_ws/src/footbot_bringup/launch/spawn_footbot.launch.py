@@ -1,11 +1,11 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, TimerAction
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, SetEnvironmentVariable, TimerAction
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import Command, EnvironmentVariable, FindExecutable, LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
-from launch_ros.substitutions import FindPackageShare
+from launch_ros.substitutions import FindPackagePrefix, FindPackageShare
 
 
 def generate_launch_description():
@@ -35,6 +35,20 @@ def generate_launch_description():
         'launch',
         'gz_sim.launch.py',
     ])
+    gazebo_plugin_path = SetEnvironmentVariable(
+        name='IGN_GAZEBO_SYSTEM_PLUGIN_PATH',
+        value=[
+            PathJoinSubstitution([
+                FindPackagePrefix('footbot_gazebo'),
+                'lib',
+            ]),
+            ':',
+            EnvironmentVariable(
+                'IGN_GAZEBO_SYSTEM_PLUGIN_PATH',
+                default_value='',
+            ),
+        ],
+    )
 
     robot_description = {
         'robot_description': Command([
@@ -173,6 +187,7 @@ def generate_launch_description():
             default_value='0',
             description='Initial robot yaw in radians.',
         ),
+        gazebo_plugin_path,
         gazebo_gui,
         gazebo_headless,
         robot_state_publisher,

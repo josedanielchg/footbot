@@ -1,11 +1,11 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, TimerAction
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, SetEnvironmentVariable, TimerAction
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import Command, EnvironmentVariable, FindExecutable, LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
-from launch_ros.substitutions import FindPackageShare
+from launch_ros.substitutions import FindPackagePrefix, FindPackageShare
 
 
 LANES = [
@@ -237,6 +237,20 @@ def generate_launch_description():
         'orange_ball',
         'model.sdf',
     ])
+    gazebo_plugin_path = SetEnvironmentVariable(
+        name='IGN_GAZEBO_SYSTEM_PLUGIN_PATH',
+        value=[
+            PathJoinSubstitution([
+                FindPackagePrefix('footbot_gazebo'),
+                'lib',
+            ]),
+            ':',
+            EnvironmentVariable(
+                'IGN_GAZEBO_SYSTEM_PLUGIN_PATH',
+                default_value='',
+            ),
+        ],
+    )
 
     gazebo_gui = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(gz_launch_file),
@@ -259,6 +273,7 @@ def generate_launch_description():
     actions = [
         DeclareLaunchArgument('use_gui', default_value='true'),
         DeclareLaunchArgument('show_debug_view', default_value='false'),
+        gazebo_plugin_path,
         gazebo_gui,
         gazebo_headless,
     ]

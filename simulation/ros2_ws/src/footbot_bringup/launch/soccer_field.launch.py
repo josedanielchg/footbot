@@ -1,10 +1,10 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, SetEnvironmentVariable
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import EnvironmentVariable, LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
-from launch_ros.substitutions import FindPackageShare
+from launch_ros.substitutions import FindPackagePrefix, FindPackageShare
 
 
 def generate_launch_description():
@@ -21,6 +21,20 @@ def generate_launch_description():
         'launch',
         'gz_sim.launch.py',
     ])
+    gazebo_plugin_path = SetEnvironmentVariable(
+        name='IGN_GAZEBO_SYSTEM_PLUGIN_PATH',
+        value=[
+            PathJoinSubstitution([
+                FindPackagePrefix('footbot_gazebo'),
+                'lib',
+            ]),
+            ':',
+            EnvironmentVariable(
+                'IGN_GAZEBO_SYSTEM_PLUGIN_PATH',
+                default_value='',
+            ),
+        ],
+    )
 
     gazebo_gui = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(gz_launch_file),
@@ -62,6 +76,7 @@ def generate_launch_description():
             default_value='true',
             description='Bridge the soccer field camera topics into ROS 2.',
         ),
+        gazebo_plugin_path,
         gazebo_gui,
         gazebo_headless,
         camera_bridge,
