@@ -15,6 +15,10 @@ def generate_launch_description():
     http_port = LaunchConfiguration('http_port')
     cmd_vel_topic = LaunchConfiguration('cmd_vel_topic')
     world_name = LaunchConfiguration('world_name')
+    robot_x = LaunchConfiguration('robot_x')
+    robot_y = LaunchConfiguration('robot_y')
+    robot_z = LaunchConfiguration('robot_z')
+    robot_yaw = LaunchConfiguration('robot_yaw')
 
     robot_description_file = PathJoinSubstitution([
         FindPackageShare('footbot_description'),
@@ -109,9 +113,10 @@ def generate_launch_description():
                     '-world', 'footbot_stage2',
                     '-topic', '/robot_description',
                     '-name', 'footbot',
-                    '-x', '0',
-                    '-y', '0',
-                    '-z', '0.02',
+                    '-x', robot_x,
+                    '-y', robot_y,
+                    '-z', robot_z,
+                    '-Y', robot_yaw,
                 ],
             )
         ],
@@ -147,6 +152,26 @@ def generate_launch_description():
             'world_name',
             default_value='footbot_camera_test.sdf',
             description='Gazebo world file from footbot_gazebo/worlds.',
+        ),
+        DeclareLaunchArgument(
+            'robot_x',
+            default_value='0',
+            description='Initial robot x position.',
+        ),
+        DeclareLaunchArgument(
+            'robot_y',
+            default_value='0',
+            description='Initial robot y position.',
+        ),
+        DeclareLaunchArgument(
+            'robot_z',
+            default_value='0.02',
+            description='Initial robot z position.',
+        ),
+        DeclareLaunchArgument(
+            'robot_yaw',
+            default_value='0',
+            description='Initial robot yaw in radians.',
         ),
         gazebo_gui,
         gazebo_headless,

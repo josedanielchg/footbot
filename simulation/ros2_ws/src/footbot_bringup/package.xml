@@ -14,6 +14,9 @@
   <exec_depend>footbot_control</exec_depend>
   <exec_depend>footbot_gazebo</exec_depend>
   <exec_depend>footbot_perception</exec_depend>
+  <exec_depend>footbot_soccer_behavior</exec_depend>
+  <exec_depend>footbot_soccer_msgs</exec_depend>
+  <exec_depend>footbot_soccer_vision</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>joint_state_publisher</exec_depend>
   <exec_depend>launch</exec_depend>
