@@ -1,0 +1,88 @@
+# Perception And Datasets
+
+## Camera Topics
+
+Default simulated robot camera:
+
+```text
+/camera/image_raw
+/camera/camera_info
+```
+
+Soccer field goalkeeper camera:
+
+```text
+/soccer/camera/image_raw
+/soccer/camera/camera_info
+```
+
+## HSV Ball Detection
+
+`footbot_perception` provides `ball_detector`, which publishes:
+
+```text
+/ball_detection
+/ball/debug_image
+```
+
+This detector is deterministic and tuned for the simulated orange ball.
+
+## YOLO Soccer Vision
+
+`footbot_soccer_vision` provides:
+
+```text
+opponent_detector
+goal_detector
+image_capture
+```
+
+Default outputs:
+
+```text
+/opponent_detections
+/opponent_detection/debug_image
+/goal_detections
+/goal_detection/debug_image
+```
+
+Detections use `vision_msgs/msg/Detection2DArray`.
+
+Install optional YOLO dependencies:
+
+```bash
+python3 -m pip install --user -r simulation/requirements-yolo.txt
+```
+
+Model weights are ignored by Git. Put local weights under:
+
+```text
+simulation/ros2_ws/src/footbot_soccer_vision/models/weights/
+```
+
+## Dataset Capture
+
+```bash
+ros2 run footbot_soccer_vision image_capture \
+  --ros-args -p image_topic:=/camera/image_raw
+```
+
+Generated images and labels are ignored by Git.
+
+## Conservative Augmentation
+
+For 40 originals, create 40 copied originals plus 120 rotated/darkened images:
+
+```bash
+python3 simulation/ros2_ws/src/footbot_soccer_vision/datasets/augment_dataset.py \
+  --input-dir simulation/ros2_ws/src/footbot_soccer_vision/datasets/raw/soccer_v1/images \
+  --output-dir simulation/ros2_ws/src/footbot_soccer_vision/datasets/raw/soccer_v1/augmented_images \
+  --output-size 640 640 \
+  --rotation-angles 90 180 270 \
+  --brightness-factor 0.85 \
+  --copy-originals \
+  --clean-output
+```
+
+The output remains unlabeled. Label generated images manually before YOLO
+training.
