@@ -87,6 +87,22 @@ ros2 run footbot_soccer_vision image_capture \
 
 Generated dataset files are ignored by Git.
 
+Create a small simulation-appropriate unlabeled augmentation set:
+
+```bash
+python3 simulation/ros2_ws/src/footbot_soccer_vision/datasets/augment_dataset.py \
+  --input-dir simulation/ros2_ws/src/footbot_soccer_vision/datasets/raw/soccer_v1/images \
+  --output-dir simulation/ros2_ws/src/footbot_soccer_vision/datasets/raw/soccer_v1/augmented_images \
+  --output-size 640 640 \
+  --rotation-angles 90 180 270 \
+  --brightness-factor 0.85 \
+  --copy-originals \
+  --clean-output
+```
+
+The augmentation output is still unlabeled and must be manually labeled before
+YOLO training.
+
 ## Current Limitations
 
 - The default pretrained model detects COCO classes such as `person`.

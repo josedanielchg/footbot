@@ -3,6 +3,8 @@ __pycache__/
 models/weights/*.pt
 models/weights/*.onnx
 datasets/raw/*
+datasets/raw_images/*
+datasets/augmented_images/*
 datasets/labels/*
 datasets/splits/*
 !datasets/raw/.gitkeep
