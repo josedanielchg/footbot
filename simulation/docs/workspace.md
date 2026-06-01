@@ -20,6 +20,9 @@ The generated build artifact directories are ignored by `simulation/.gitignore`.
 | `footbot_control` | `ament_python` | Future ROS 2 command-mapping nodes. |
 | `footbot_perception` | `ament_python` | Future camera, image-processing, and object-detection nodes. |
 | `footbot_bridge` | `ament_python` | Future HTTP-to-ROS compatibility adapter. |
+| `footbot_soccer_msgs` | `ament_cmake` | Custom soccer behavior message interfaces. |
+| `footbot_soccer_behavior` | `ament_python` | Ball-control state estimation, skills, and FSM. |
+| `footbot_soccer_vision` | `ament_python` | YOLO soccer perception and dataset capture. |
 
 ## Build
 
@@ -53,6 +56,7 @@ footbot_control
 footbot_description
 footbot_gazebo
 footbot_perception
+footbot_soccer_behavior
+footbot_soccer_msgs
+footbot_soccer_vision
 ```
-
-Only the description, Gazebo, and bringup packages provide runtime resources at this point. Control, perception, and bridge packages are placeholders for future simulation work.

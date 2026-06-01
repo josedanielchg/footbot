@@ -258,6 +258,73 @@ Expected result:
 - `/camera/image_raw` is `sensor_msgs/msg/Image`.
 - `/camera/camera_info` is `sensor_msgs/msg/CameraInfo`.
 - Image dimensions are `640x480`.
+
+## YOLO Opponent Detection
+
+Install optional YOLO dependencies from the repository root:
+
+```bash
+python3 -m pip install --user -r simulation/requirements-yolo.txt
+python3 -c "from ultralytics import YOLO; print('ultralytics ok')"
+```
+
+Launch the opponent-detection world and detector:
+
+```bash
+cd /media/josedanielchg/Data/Proyectos/Robotica/footbot/simulation/ros2_ws
+source /opt/ros/humble/setup.bash
+source install/setup.bash
+
+ros2 launch footbot_bringup opponent_detection.launch.py show_debug_view:=true
+```
+
+Inspect topics:
+
+```bash
+ros2 topic list | grep -E 'camera|opponent'
+ros2 topic info /opponent_detections
+ros2 topic echo /opponent_detections
+ros2 topic hz /opponent_detection/debug_image
+```
+
+Expected result:
+
+- `/opponent_detections` is `vision_msgs/msg/Detection2DArray`.
+- `/opponent_detection/debug_image` publishes an annotated image.
+- No node from this launch publishes `/cmd_vel`.
+
+The default pretrained model is useful for verifying the ROS/YOLO pipeline. The
+primitive Gazebo opponent placeholders are dataset-capture targets and may need
+custom training before they are detected as opponents reliably.
+
+Dataset capture:
+
+```bash
+ros2 run footbot_soccer_vision image_capture \
+  --ros-args -p image_topic:=/camera/image_raw
+```
+
+## Soccer Field Scene
+
+Launch the field layout:
+
+```bash
+cd /media/josedanielchg/Data/Proyectos/Robotica/footbot/simulation/ros2_ws
+source /opt/ros/humble/setup.bash
+source install/setup.bash
+
+ros2 launch footbot_bringup soccer_field.launch.py
+```
+
+Expected result:
+
+- Gazebo opens a green soccer field.
+- Border walls surround the field.
+- Two goals are visible.
+- The ball starts at the center spot.
+- Six FootBot-like robots are arranged as two mirrored triangular teams.
+- Each side has one robot in front of its goal and two robots closer to the
+  center line at matching vertical positions.
 - `camera_info.header.frame_id` is `camera_optical_frame`.
 - Image publishing is near `15 Hz`.
 
@@ -445,3 +512,109 @@ Expected result:
 - Left detections publish positive `angular.z`.
 - Right detections publish negative `angular.z`.
 - Close or stale detections publish zero Twist.
+
+## Soccer Ball Control
+
+Build and source the workspace:
+
+```bash
+cd /media/josedanielchg/Data/Proyectos/Robotica/footbot/simulation/ros2_ws
+source /opt/ros/humble/setup.bash
+colcon build --symlink-install
+source install/setup.bash
+```
+
+Check the new message and executables:
+
+```bash
+ros2 interface show footbot_soccer_msgs/msg/BallState
+ros2 pkg executables footbot_soccer_behavior
+ros2 launch footbot_bringup ball_control.launch.py --show-args
+```
+
+Launch the behavior:
+
+```bash
+ros2 launch footbot_bringup ball_control.launch.py scenario:=front show_debug_view:=true
+```
+
+Inspect behavior topics:
+
+```bash
+ros2 topic echo /soccer/ball_state
+ros2 topic echo /soccer/fsm_state
+ros2 topic echo /cmd_vel
+```
+
+Expected result:
+
+- `/ball_detection` publishes when the orange ball is visible.
+- `/soccer/ball_state` estimates ball angle, distance, and control flags.
+- `/soccer/fsm_state` transitions through search, align, approach, contact, control, and rotate states.
+- The FSM owns `/cmd_vel`; HTTP bridge, gesture control, and the old ball follower are not launched.
+- The robot stops safely when the ball is lost.
+
+Multi-lane ball-control stress test:
+
+```bash
+ros2 launch footbot_bringup ball_control_multi.launch.py show_debug_view:=true
+```
+
+Inspect one lane:
+
+```bash
+ros2 topic echo /ball_control/front/soccer/fsm_state
+ros2 topic echo /ball_control/far/soccer/ball_state
+ros2 topic echo /ball_control/behind/cmd_vel
+```
+
+Expected result:
+
+- Gazebo contains three wall-separated lanes.
+- Each lane has one robot and one dynamic orange ball.
+- The `front` robot approaches a centered ball.
+- The `far` robot approaches a farther ball.
+- The `behind` robot initially searches by rotating, then aligns after finding the ball.
+- No lane publishes to the global `/cmd_vel`; each lane uses `/ball_control/<lane>/cmd_vel`.
+
+## Soccer Field Scene
+
+Launch the field layout:
+
+```bash
+cd /media/josedanielchg/Data/Proyectos/Robotica/footbot/simulation/ros2_ws
+source /opt/ros/humble/setup.bash
+source install/setup.bash
+
+ros2 launch footbot_bringup soccer_field.launch.py
+```
+
+Expected result:
+
+- Gazebo opens a green soccer field.
+- Border walls surround the field.
+- Two goals are visible.
+- The ball starts at the center spot.
+- Six FootBot-like robots are arranged as two mirrored triangular teams.
+- `/soccer/camera/image_raw` and `/soccer/camera/camera_info` are available.
+
+Check the soccer camera:
+
+```bash
+ros2 topic list | grep /soccer/camera
+ros2 topic hz /soccer/camera/image_raw
+```
+
+Run the soccer detector launch:
+
+```bash
+ros2 launch footbot_bringup soccer_detection.launch.py show_debug_view:=true
+```
+
+Expected result:
+
+- `/opponent_detections` publishes `vision_msgs/msg/Detection2DArray`.
+- `/goal_detections` publishes `vision_msgs/msg/Detection2DArray`.
+- Debug image topics are available for both detectors.
+- A custom trained YOLO model is required for reliable `goal` and `opponent`
+  classes.

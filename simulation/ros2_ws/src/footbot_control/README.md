@@ -6,6 +6,7 @@ Current contents:
 
 - `gesture_to_cmd_vel`: converts gesture intent topics into `/cmd_vel`.
 - `ball_follower`: converts ball detections into `/cmd_vel`.
+- Ball-control FSM work lives in `footbot_soccer_behavior`, not this package.
 
 Subscribed topics:
 

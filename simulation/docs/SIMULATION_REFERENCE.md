@@ -38,6 +38,7 @@ The simulation currently provides:
 - a simulated robot camera
 - webcam gesture perception and ROS-native control
 - autonomous HSV ball following
+- deterministic one-robot soccer ball control
 - YOLO opponent and goal detector plumbing
 - a soccer field scene with walls, goals, a center ball, and mirrored teams
 
@@ -342,6 +343,39 @@ Model weights are ignored by Git:
 footbot_soccer_vision/models/weights/
 ```
 
+### `footbot_soccer_msgs`
+
+Build type: `ament_cmake`
+
+Purpose:
+
+- owns custom message interfaces for soccer behavior nodes
+- currently provides `BallState`
+
+Key file:
+
+```text
+footbot_soccer_msgs/msg/BallState.msg
+```
+
+### `footbot_soccer_behavior`
+
+Build type: `ament_python`
+
+Purpose:
+
+- estimates ball-relative state from camera detections
+- owns deterministic ball-control skills
+- owns the ball-control finite state machine
+
+Key files:
+
+```text
+footbot_soccer_behavior/footbot_soccer_behavior/ball_state_estimator_node.py
+footbot_soccer_behavior/footbot_soccer_behavior/ball_control_fsm_node.py
+footbot_soccer_behavior/footbot_soccer_behavior/skills/ball_control_skills.py
+```
+
 ## ROS 2 Concepts Used
 
 ### Packages
@@ -391,6 +425,8 @@ Important topics:
 /gesture/debug_image
 /ball_detection
 /ball/debug_image
+/soccer/ball_state
+/soccer/fsm_state
 /opponent_detections
 /opponent_detection/debug_image
 /goal_detections
@@ -412,6 +448,7 @@ std_msgs/msg/String              gesture direction
 std_msgs/msg/Float32             gesture speed
 vision_msgs/msg/Detection2D      single 2D detection
 vision_msgs/msg/Detection2DArray multiple 2D detections
+footbot_soccer_msgs/msg/BallState estimated ball-control state
 ```
 
 ### Parameters
@@ -701,6 +738,84 @@ The controller uses proportional control:
 - move forward when centered
 - stop when close
 - stop when detection is stale
+
+### Soccer Ball Control
+
+Launch deterministic ball control:
+
+```bash
+ros2 launch footbot_bringup ball_control.launch.py
+```
+
+Launch a specific scenario:
+
+```bash
+ros2 launch footbot_bringup ball_control.launch.py scenario:=misaligned show_debug_view:=true
+```
+
+Available scenarios:
+
+```text
+front
+left
+right
+far
+close
+misaligned
+```
+
+Topics:
+
+```text
+/ball_detection
+/ball/debug_image
+/soccer/ball_state
+/soccer/fsm_state
+/cmd_vel
+```
+
+Finite-state machine states:
+
+```text
+SEARCH_BALL
+ALIGN_TO_BALL
+APPROACH_BALL
+CONTACT_BALL
+CONTROL_BALL
+ROTATE_WITH_BALL
+RECOVER_BALL
+STOP_SAFE
+```
+
+The behavior uses the existing HSV ball detector, then estimates `BallState`,
+then uses an FSM to select deterministic skills. It is not full dribbling,
+shooting, opponent interaction, or team play.
+
+Multi-lane stress test:
+
+```bash
+ros2 launch footbot_bringup ball_control_multi.launch.py
+```
+
+This launch starts three robots and three dynamic balls in the same Gazebo
+simulation. Divider walls isolate the lanes so each robot sees only its own
+ball. The lanes are:
+
+```text
+front   ball starts centered in front of the robot
+far     ball starts farther away in front of the robot
+behind  ball starts behind the robot, so search rotation is required
+```
+
+Topic trees are isolated per lane:
+
+```text
+/ball_control/front/camera/image_raw
+/ball_control/front/ball_detection
+/ball_control/front/soccer/ball_state
+/ball_control/front/soccer/fsm_state
+/ball_control/front/cmd_vel
+```
 
 ### YOLO Opponent Detection
 

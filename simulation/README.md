@@ -19,6 +19,7 @@ The simulation workspace is intentionally isolated from the existing ESP32-CAM f
 - [Verification steps](docs/VERIFICATION.md)
 - [Workspace guide](docs/workspace.md)
 - [Architecture](docs/architecture.md)
+- [Simulation reference](docs/SIMULATION_REFERENCE.md)
 
 ## Workspace
 
@@ -50,6 +51,9 @@ source install/setup.bash
 - `footbot_control`: ROS-native gesture-to-velocity and ball-following command mapping.
 - `footbot_perception`: webcam publishing, MediaPipe hand detection, gesture classification, and OpenCV ball detection.
 - `footbot_bridge`: ESP32-compatible HTTP `/move` adapter for publishing simulation velocity commands.
+- `footbot_soccer_msgs`: custom soccer behavior messages such as `BallState`.
+- `footbot_soccer_behavior`: deterministic ball-control state estimation, skills, and FSM.
+- `footbot_soccer_vision`: YOLO-based soccer vision experiments, opponent detections, debug visualization, and dataset capture.
 
 ## Launch
 
@@ -189,3 +193,146 @@ Ball follower topics:
 Only run one `/cmd_vel` owner at a time. Use separate launch modes for HTTP/manual control, gesture control, and autonomous ball following.
 
 The default detector uses HSV orange segmentation with a permissive circularity threshold tuned for the simulated camera view.
+
+## Soccer Ball Control
+
+Launch the deterministic one-robot ball-control behavior:
+
+```bash
+ros2 launch footbot_bringup ball_control.launch.py
+```
+
+Launch a specific scenario with a debug image window:
+
+```bash
+ros2 launch footbot_bringup ball_control.launch.py scenario:=left show_debug_view:=true
+```
+
+Available scenarios:
+
+```text
+front
+left
+right
+far
+close
+misaligned
+```
+
+Ball-control topics:
+
+```text
+/camera/image_raw
+/ball_detection
+/ball/debug_image
+/soccer/ball_state
+/soccer/fsm_state
+/cmd_vel
+```
+
+This mode uses the HSV ball detector, a `BallState` estimator, and a finite-state
+machine. It does not implement shooting, opponent interaction, team play, or RL.
+
+Launch the multi-lane ball-control stress test:
+
+```bash
+ros2 launch footbot_bringup ball_control_multi.launch.py
+```
+
+This starts three wall-separated lanes in one Gazebo world:
+
+```text
+front   robot faces a ball in front of it
+far     robot faces a farther ball
+behind  robot starts with the ball behind it and must search by rotating
+```
+
+Each lane has isolated topics under `/ball_control/<lane>/`, for example
+`/ball_control/front/camera/image_raw`, `/ball_control/front/ball_detection`,
+`/ball_control/front/soccer/ball_state`, and `/ball_control/front/cmd_vel`.
+
+## YOLO Opponent Detection
+
+Install the optional YOLO dependencies from the repository root:
+
+```bash
+python3 -m pip install --user -r simulation/requirements-yolo.txt
+```
+
+Launch the opponent-detection simulation mode:
+
+```bash
+ros2 launch footbot_bringup opponent_detection.launch.py
+```
+
+Launch with the debug image window:
+
+```bash
+ros2 launch footbot_bringup opponent_detection.launch.py show_debug_view:=true
+```
+
+Opponent detection topics:
+
+```text
+/camera/image_raw
+/opponent_detections
+/opponent_detection/debug_image
+```
+
+The default YOLO model is `yolo11n.pt` with `target_classes:=person`. This is
+for inference plumbing and dataset capture. Reliable detection of custom Gazebo
+  FootBot-like opponent placeholders will require fine-tuning later.
+The dependency file pins Ultralytics to `8.4.56`, the current non-yanked PyPI
+release verified on 2026-05-30.
+
+Capture dataset images from the robot camera:
+
+```bash
+ros2 run footbot_soccer_vision image_capture \
+  --ros-args -p image_topic:=/camera/image_raw
+```
+
+Only run one `/cmd_vel` owner at a time. Opponent detection mode does not command
+the robot.
+
+## Soccer Field Scene
+
+Open the soccer field layout:
+
+```bash
+ros2 launch footbot_bringup soccer_field.launch.py
+```
+
+The scene contains:
+
+- a small green field
+- border walls to keep the ball inside
+- two goals
+- a dynamic ball at the center
+- two mirrored teams of three FootBot-like robots
+
+The robots are static placeholders for layout and perception work. Future work
+can replace them with individually spawned controlled robots.
+
+Run soccer-field detection from the blue goalkeeper camera:
+
+```bash
+ros2 launch footbot_bringup soccer_detection.launch.py show_debug_view:=true
+```
+
+Camera and detector topics:
+
+```text
+/soccer/camera/image_raw
+/soccer/camera/camera_info
+/opponent_detections
+/goal_detections
+```
+
+The default `yolo11n.pt` model can verify the YOLO/ROS pipeline, but it does not
+know custom `goal` or `opponent robot` classes. Use custom trained weights when
+they are ready:
+
+```bash
+ros2 launch footbot_bringup soccer_detection.launch.py model_path:=/path/to/best.pt
+```
