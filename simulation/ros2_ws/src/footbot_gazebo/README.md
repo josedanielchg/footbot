@@ -27,4 +27,4 @@ Validate a world:
 ign sdf -k simulation/ros2_ws/src/footbot_gazebo/worlds/footbot_soccer_field.sdf
 ```
 
-See `simulation/docs/WORLDS_AND_SCENARIOS.md` for the world catalog and plugin notes.
+See `simulation/docs/en/worlds-and-scenarios.md` for the world catalog and plugin notes.

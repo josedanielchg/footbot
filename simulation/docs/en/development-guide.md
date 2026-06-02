@@ -52,6 +52,6 @@ ign sdf -k src/footbot_gazebo/worlds/footbot_soccer_field.sdf
 
 ## Documentation Rules
 
-Keep docs English-only in `simulation/docs/` for now. Separate implemented
+Keep English docs in `simulation/docs/en/` for now. Separate implemented
 behavior from planned behavior. Prefer short topic-focused docs over one giant
 reference file.

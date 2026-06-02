@@ -76,5 +76,5 @@ Not implemented yet:
 
 See also:
 
-- `simulation/docs/PERCEPTION_AND_DATASETS.md`
-- `simulation/docs/MODES.md`
+- `simulation/docs/en/perception-and-datasets.md`
+- `simulation/docs/en/modes.md`

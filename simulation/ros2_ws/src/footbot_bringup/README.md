@@ -29,6 +29,6 @@ ros2 launch footbot_bringup soccer_detection.launch.py show_debug_view:=true
 
 See the simulation docs:
 
-- `simulation/docs/MODES.md`
-- `simulation/docs/BALL_CONTROL.md`
-- `simulation/docs/ARCHITECTURE.md`
+- `simulation/docs/en/modes.md`
+- `simulation/docs/en/ball-control.md`
+- `simulation/docs/en/architecture.md`

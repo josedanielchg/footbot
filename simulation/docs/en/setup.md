@@ -10,9 +10,9 @@ ros-humble-ros-gz
 Python 3.10
 ```
 
-Use [INSTALL_UBUNTU_22_04.md](INSTALL_UBUNTU_22_04.md) for the detailed apt
+Use [install-ubuntu-22-04.md](install-ubuntu-22-04.md) for the detailed apt
 installation steps. The stack decision and future migration notes are in
-[STACK_DECISION.md](STACK_DECISION.md).
+[stack-decision.md](stack-decision.md).
 
 ## Baseline Checks
 

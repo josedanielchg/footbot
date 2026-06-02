@@ -6,6 +6,14 @@ Gazebo worlds live in:
 simulation/ros2_ws/src/footbot_gazebo/worlds/
 ```
 
+<p align="center">
+  <img src="src/soccer-field.png" alt="FootBot soccer field screenshot" />
+</p>
+
+**Figure 1.** Planned screenshot slot. Run
+`ros2 launch footbot_bringup soccer_field.launch.py` and save a full-field
+Gazebo screenshot at `simulation/docs/en/src/soccer-field.png`.
+
 Important worlds:
 
 | World | Purpose |

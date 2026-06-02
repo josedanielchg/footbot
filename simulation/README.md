@@ -1,7 +1,48 @@
-# FootBot Simulation
+# FootBot Simulation — ROS 2 + Gazebo 🤖⚽
 
-This folder contains the ROS 2 + Gazebo simulation layer for FootBot. It is
-isolated from the legacy ESP32 firmware and host-side control applications.
+[English](docs/en/README.md) · Español soon · Français soon
+
+> Simulation-first migration of FootBot using **ROS 2 Humble** and **Gazebo
+> Fortress**. This layer keeps the legacy ESP32 and Python apps available as
+> references while adding robot spawning, simulated camera data, ROS-native
+> control, soccer perception, and autonomous ball-control experiments.
+
+<p align="center">
+  <img src="docs/en/src/simulation-overview.png" alt="FootBot simulation overview screenshot" />
+</p>
+
+**Figure 1.** Planned screenshot slot. Save a Gazebo screenshot of the spawned
+FootBot at `simulation/docs/en/src/simulation-overview.png`.
+
+---
+
+## At A Glance
+
+- 🤖 **Robot model:** FootBot Xacro model with wheels, caster, camera, and Gazebo plugins.
+- 🎮 **Control:** `/cmd_vel`, legacy HTTP `/move`, and ROS-native gesture control.
+- 👁️ **Perception:** simulated camera, HSV ball detection, YOLO detector plumbing, and dataset tools.
+- ⚽ **Soccer worlds:** camera tests, ball-control scenarios, multi-lane tests, goals, walls, and teams.
+- 🧠 **Autonomy:** deterministic ball-control FSM; goal play, stealing, and team strategy are planned only.
+
+> **Control rule:** run only one `/cmd_vel` owner at a time.
+
+---
+
+## Table of Contents
+
+- 📚 [Docs index](docs/en/README.md)
+- 🚀 [Setup](docs/en/setup.md)
+- 🧱 [Workspace](docs/en/workspace.md)
+- 🧭 [Architecture](docs/en/architecture.md)
+- 🎮 [Simulation modes](docs/en/modes.md)
+- ⚽ [Ball control](docs/en/ball-control.md)
+- 👁️ [Perception and datasets](docs/en/perception-and-datasets.md)
+- 🌍 [Worlds and scenarios](docs/en/worlds-and-scenarios.md)
+- 🧪 [Troubleshooting](docs/en/troubleshooting.md)
+- 🛠️ [Development guide](docs/en/development-guide.md)
+- 🗺️ [Planned soccer stages](docs/en/planned-soccer-stages.md)
+
+---
 
 ## Quick Start
 
@@ -12,65 +53,16 @@ colcon build --symlink-install
 source install/setup.bash
 ```
 
-Launch the base robot simulation:
+Base simulation:
 
 ```bash
 ros2 launch footbot_bringup spawn_footbot.launch.py
 ```
 
-Launch the current autonomous soccer behavior:
+Current autonomous ball-control example:
 
 ```bash
 ros2 launch footbot_bringup ball_control.launch.py scenario:=front show_debug_view:=true
 ```
 
-## Documentation
-
-Start here:
-
-- [Simulation docs index](docs/README.md)
-- [Setup](docs/SETUP.md)
-- [Workspace](docs/WORKSPACE.md)
-- [Architecture](docs/ARCHITECTURE.md)
-- [Simulation modes](docs/MODES.md)
-- [Ball control](docs/BALL_CONTROL.md)
-
-Reference guides:
-
-- [Perception and datasets](docs/PERCEPTION_AND_DATASETS.md)
-- [Worlds and scenarios](docs/WORLDS_AND_SCENARIOS.md)
-- [Planned soccer stages](docs/PLANNED_SOCCER_STAGES.md)
-- [Troubleshooting](docs/TROUBLESHOOTING.md)
-- [Development guide](docs/DEVELOPMENT_GUIDE.md)
-
-## Current Packages
-
-```text
-footbot_common           shared constants and tiny utilities
-footbot_description      robot Xacro model and frames
-footbot_gazebo           worlds, models, bridge config, Gazebo plugins
-footbot_bringup          launch orchestration
-footbot_bridge           HTTP /move compatibility bridge
-footbot_perception       webcam, hand, HSV ball detection, debug viewer
-footbot_control          gesture and simple ball-following controllers
-footbot_soccer_msgs      custom soccer behavior messages
-footbot_soccer_behavior  ball-control estimator, skills, and FSM
-footbot_soccer_vision    YOLO perception and dataset tools
-```
-
-## Control Rule
-
-Run only one `/cmd_vel` owner at a time. Manual/HTTP, gesture control, simple
-ball following, and deterministic ball control are separate modes.
-
-## Legacy Code Boundaries
-
-These folders remain available as references and should not be modified by
-simulation work unless a future task explicitly requires it:
-
-```text
-esp32cam_robot/
-manual_control/
-auto_soccer_bot/
-soccer_vision/
-```
+See [simulation modes](docs/en/modes.md) for the rest of the launch commands.

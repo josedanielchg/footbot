@@ -52,5 +52,5 @@ Not implemented yet:
 
 See also:
 
-- `simulation/docs/ARCHITECTURE.md`
-- `simulation/docs/MODES.md`
+- `simulation/docs/en/architecture.md`
+- `simulation/docs/en/modes.md`

@@ -51,7 +51,7 @@ ros2 launch footbot_bringup ball_control.launch.py scenario:=front show_debug_vi
 ```
 
 This is the current implemented autonomous soccer behavior. See
-[BALL_CONTROL.md](BALL_CONTROL.md).
+[ball-control.md](ball-control.md).
 
 ## Multi-Lane Ball Control Test
 

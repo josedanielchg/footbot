@@ -1,5 +1,13 @@
 # Perception And Datasets
 
+<p align="center">
+  <img src="src/gesture-debug.png" alt="Gesture debug screenshot with MediaPipe landmarks" />
+</p>
+
+**Figure 1.** Planned screenshot slot. Run
+`ros2 launch footbot_bringup sim_gesture_control.launch.py show_debug_view:=true`
+and save the MediaPipe gesture overlay at `simulation/docs/en/src/gesture-debug.png`.
+
 ## Camera Topics
 
 Default simulated robot camera:
@@ -68,6 +76,14 @@ ros2 run footbot_soccer_vision image_capture \
 ```
 
 Generated images and labels are ignored by Git.
+
+<p align="center">
+  <img src="src/yolo-labeling.png" alt="Label Studio screenshot with soccer object labels" />
+</p>
+
+**Figure 2.** Planned screenshot slot. In Label Studio, open a task with visible
+`ball`, `goal`, and `opponent` boxes, then save the screenshot at
+`simulation/docs/en/src/yolo-labeling.png`.
 
 ## Conservative Augmentation
 
