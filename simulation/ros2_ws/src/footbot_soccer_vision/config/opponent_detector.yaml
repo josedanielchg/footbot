@@ -1,0 +1,15 @@
+opponent_detector:
+  ros__parameters:
+    image_topic: /camera/image_raw
+    detections_topic: /opponent_detections
+    debug_image_topic: /opponent_detection/debug_image
+    publish_debug_image: true
+    model_path: ''
+    model_name: yolo11n.pt
+    target_classes: person
+    confidence_threshold: 0.35
+    iou_threshold: 0.45
+    device: cpu
+    image_size: 640
+    max_fps: 10.0
+    max_detections: 20

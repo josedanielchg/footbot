@@ -1,0 +1,113 @@
+<?xml version="1.0"?>
+<sdf version="1.8">
+  <world name="footbot_stage2">
+    <gravity>0 0 -9.81</gravity>
+    <magnetic_field>0 0 0</magnetic_field>
+    <atmosphere type="adiabatic"/>
+
+    <plugin filename="ignition-gazebo-physics-system" name="ignition::gazebo::systems::Physics"/>
+    <plugin filename="libfootbot_ball_drag_system.so" name="footbot_gazebo::BallDragSystem">
+      <link_name>ball_link</link_name>
+      <linear_damping>0.18</linear_damping>
+      <angular_damping>0.0012</angular_damping>
+      <max_force>0.30</max_force>
+      <max_torque>0.015</max_torque>
+      <stop_linear_speed>0.02</stop_linear_speed>
+      <stop_angular_speed>0.35</stop_angular_speed>
+    </plugin>
+    <plugin filename="ignition-gazebo-user-commands-system" name="ignition::gazebo::systems::UserCommands"/>
+    <plugin filename="ignition-gazebo-scene-broadcaster-system" name="ignition::gazebo::systems::SceneBroadcaster"/>
+    <plugin filename="ignition-gazebo-sensors-system" name="ignition::gazebo::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+
+    <physics name="default_physics" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <scene>
+      <ambient>0.60 0.60 0.60 1.0</ambient>
+      <background>0.76 0.80 0.84 1.0</background>
+      <shadows>true</shadows>
+    </scene>
+
+    <light name="sun" type="directional">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 5 0 0 0</pose>
+      <diffuse>0.90 0.90 0.90 1</diffuse>
+      <specular>0.20 0.20 0.20 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.45 0.15 -0.9</direction>
+    </light>
+
+    <model name="control_field">
+      <static>true</static>
+      <link name="field_link">
+        <collision name="field_collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>5 4</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="field_visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>5 4</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.12 0.42 0.18 1</ambient>
+            <diffuse>0.12 0.52 0.22 1</diffuse>
+            <specular>0.05 0.05 0.05 1</specular>
+          </material>
+        </visual>
+        <visual name="center_reference_line">
+          <pose>0 0 0.004 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.015 2.0 0.004</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.88 0.88 0.82 1</ambient>
+            <diffuse>0.88 0.88 0.82 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="goal_marker">
+      <static>true</static>
+      <pose>1.85 0 0.18 0 0 0</pose>
+      <link name="goal_marker_link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.04 0.70 0.36</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.04 0.70 0.36</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.20 0.36 0.78 1</ambient>
+            <diffuse>0.20 0.36 0.78 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>

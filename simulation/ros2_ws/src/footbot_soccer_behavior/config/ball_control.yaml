@@ -1,0 +1,41 @@
+ball_state_estimator:
+  ros__parameters:
+    detection_topic: /ball_detection
+    ball_state_topic: /soccer/ball_state
+    image_width: 640.0
+    camera_horizontal_fov_rad: 1.047
+    ball_radius_m: 0.045
+    lost_detection_timeout_sec: 0.5
+    center_tolerance: 0.12
+    near_distance_m: 0.45
+    contact_distance_m: 0.24
+    control_distance_m: 0.20
+    control_angle_tolerance_rad: 0.18
+    control_hold_time_sec: 0.35
+    min_confidence: 0.30
+    publish_rate: 30.0
+
+ball_control_fsm:
+  ros__parameters:
+    ball_state_topic: /soccer/ball_state
+    cmd_vel_topic: /cmd_vel
+    fsm_state_topic: /soccer/fsm_state
+    update_rate: 20.0
+    lost_ball_timeout_sec: 0.7
+    recover_duration_sec: 0.5
+    contact_timeout_sec: 2.0
+    control_min_duration_sec: 0.5
+    rotate_with_ball_enabled: true
+    rotate_duration_sec: 2.0
+    emergency_stop: false
+    max_linear_velocity: 0.14
+    max_angular_velocity: 0.8
+    search_angular_velocity: 0.25
+    approach_linear_velocity: 0.12
+    contact_linear_velocity: 0.045
+    control_linear_velocity: 0.055
+    rotate_with_ball_angular_velocity: 0.22
+    recover_reverse_velocity: -0.04
+    angular_kp: 0.9
+    linear_kp: 0.16
+    acceleration_smoothing_alpha: 0.35

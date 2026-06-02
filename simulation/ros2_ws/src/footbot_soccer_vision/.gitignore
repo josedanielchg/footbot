@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+models/weights/*.pt
+models/weights/*.onnx
+datasets/raw/*
+datasets/raw_images/*
+datasets/augmented_images/*
+datasets/labels/*
+datasets/splits/*
+!datasets/raw/.gitkeep
+!datasets/labels/.gitkeep
+!datasets/splits/.gitkeep
