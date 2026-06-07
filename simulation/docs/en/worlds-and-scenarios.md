@@ -23,6 +23,7 @@ Important worlds:
 | `footbot_ball_follow.sdf` | Simple ball-follower test scene. |
 | `footbot_ball_control.sdf` | One robot plus dynamic ball scenarios. |
 | `footbot_ball_control_multi.sdf` | Three isolated ball-control lanes. |
+| `footbot_reach_goal.sdf` | One robot, one dynamic ball, and one goal for Reach Goal vision/behavior work. |
 | `footbot_opponent_detection.sdf` | Opponent-detection placeholders. |
 | `footbot_soccer_field.sdf` | Field, walls, goals, center ball, and mirrored teams. |
 

@@ -20,6 +20,7 @@ in the camera-test world and save it as `simulation/docs/en/src/simulation-overv
 - 🧭 [Architecture](architecture.md)
 - 🎮 [Modes](modes.md)
 - ⚽ [Ball Control](ball-control.md)
+- 🥅 [Reach Goal With Ball](reach-goal.md)
 - 👁️ [Perception And Datasets](perception-and-datasets.md)
 - 🌍 [Worlds And Scenarios](worlds-and-scenarios.md)
 - 🧪 [Troubleshooting](troubleshooting.md)
@@ -51,12 +52,12 @@ Implemented:
 - ROS-native webcam gesture control.
 - HSV ball detection and simple ball follower.
 - Deterministic one-robot ball control with FSM orchestration.
+- Deterministic Reach-goal behavior that pushes the ball toward a goal.
 - YOLO opponent/goal detector plumbing and dataset capture workflow.
 - Soccer field and multi-scenario worlds.
 
 Planned only:
 
-- Reach the goal while keeping ball control.
 - Steal the ball from an opponent.
 - Team play with three robots per side.
 - RL/MARL, MCTS, or SPO-style tactical experiments.

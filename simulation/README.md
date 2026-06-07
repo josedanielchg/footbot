@@ -22,7 +22,7 @@ FootBot at `simulation/docs/en/src/simulation-overview.png`.
 - 🎮 **Control:** `/cmd_vel`, legacy HTTP `/move`, and ROS-native gesture control.
 - 👁️ **Perception:** simulated camera, HSV ball detection, YOLO detector plumbing, and dataset tools.
 - ⚽ **Soccer worlds:** camera tests, ball-control scenarios, multi-lane tests, goals, walls, and teams.
-- 🧠 **Autonomy:** deterministic ball-control FSM; goal play, stealing, and team strategy are planned only.
+- 🧠 **Autonomy:** deterministic ball-control FSM and Reach-goal FSM; stealing and team strategy are planned only.
 
 > **Control rule:** run only one `/cmd_vel` owner at a time.
 
@@ -36,6 +36,7 @@ FootBot at `simulation/docs/en/src/simulation-overview.png`.
 - 🧭 [Architecture](docs/en/architecture.md)
 - 🎮 [Simulation modes](docs/en/modes.md)
 - ⚽ [Ball control](docs/en/ball-control.md)
+- 🥅 [Reach goal with ball](docs/en/reach-goal.md)
 - 👁️ [Perception and datasets](docs/en/perception-and-datasets.md)
 - 🌍 [Worlds and scenarios](docs/en/worlds-and-scenarios.md)
 - 🧪 [Troubleshooting](docs/en/troubleshooting.md)
@@ -63,6 +64,12 @@ Current autonomous ball-control example:
 
 ```bash
 ros2 launch footbot_bringup ball_control.launch.py scenario:=front show_debug_view:=true
+```
+
+Reach-goal vision scene:
+
+```bash
+ros2 launch footbot_bringup reach_goal.launch.py show_debug_view:=true
 ```
 
 See [simulation modes](docs/en/modes.md) for the rest of the launch commands.

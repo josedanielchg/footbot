@@ -11,6 +11,9 @@ raw/session_YYYYMMDD_HHMMSS/metadata.csv
 raw/soccer_v1/images/*.jpg
 raw/soccer_v1/augmented_images/*.jpg
 raw/soccer_v1/augmented_images/augmentation_metadata.json
+exports/soccer_v1_labelstudio_yolo/
+exports/reach_goal_ball_goal_v1/
+exports/full_soccer_v1/
 labels/session_name/*.txt
 splits/data.yaml
 ```
@@ -82,3 +85,33 @@ and keeps manual labeling work bounded.
 After augmentation, all generated images still need to be manually labeled for
 YOLO. The metadata file only records how each image was produced; it is not a
 label file.
+
+## Reach Goal YOLO Export Workflow
+
+Export labeled images from Label Studio in YOLO format and unpack them under:
+
+```text
+datasets/exports/soccer_v1_labelstudio_yolo/
+```
+
+Then create the Reach-goal ball/goal-only dataset:
+
+```bash
+python3 simulation/ros2_ws/src/footbot_soccer_vision/datasets/prepare_reach_goal_dataset.py \
+  --input-dir simulation/ros2_ws/src/footbot_soccer_vision/datasets/exports/soccer_v1_labelstudio_yolo \
+  --output-dir simulation/ros2_ws/src/footbot_soccer_vision/datasets/exports/reach_goal_ball_goal_v1 \
+  --classes ball goal \
+  --copy-images \
+  --seed 42
+```
+
+Validate before training:
+
+```bash
+python3 simulation/ros2_ws/src/footbot_soccer_vision/datasets/validate_yolo_dataset.py \
+  --dataset-dir simulation/ros2_ws/src/footbot_soccer_vision/datasets/exports/reach_goal_ball_goal_v1 \
+  --require-splits train val
+```
+
+The original export is preserved. Prepared datasets remap class IDs so Reach Goal
+uses `ball -> 0` and `goal -> 1`.

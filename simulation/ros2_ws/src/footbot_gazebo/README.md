@@ -17,6 +17,7 @@ footbot_camera_test.sdf
 footbot_ball_follow.sdf
 footbot_ball_control.sdf
 footbot_ball_control_multi.sdf
+footbot_reach_goal.sdf
 footbot_opponent_detection.sdf
 footbot_soccer_field.sdf
 ```

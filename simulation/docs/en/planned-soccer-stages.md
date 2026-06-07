@@ -1,6 +1,6 @@
 # Planned Soccer Stages
 
-Only ball control is currently implemented.
+Ball control and the Reach-goal behavior are currently implemented.
 
 ## Implemented Now
 
@@ -9,12 +9,13 @@ Only ball control is currently implemented.
 The robot detects the orange ball, aligns, approaches, contacts, keeps the ball
 in a frontal control zone, and rotates slowly while maintaining control.
 
-## Planned Later
-
 ### Reach The Goal With The Ball
 
-The robot should keep ball control while moving toward a goal. This will likely
-reuse ball state, goal detections, FSM orchestration, and ball-control skills.
+The robot keeps ball control while pushing the ball toward a YOLO-detected goal.
+It reuses the perception-driven pattern: a `BallGoalState` estimator, bounded
+skills, and an FSM that owns `/cmd_vel`. See [reach-goal.md](reach-goal.md).
+
+## Planned Later
 
 ### Steal The Ball From An Opponent
 
