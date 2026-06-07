@@ -22,5 +22,13 @@ OPPONENT_DEBUG_IMAGE = '/opponent_detection/debug_image'
 GOAL_DETECTIONS = '/goal_detections'
 GOAL_DEBUG_IMAGE = '/goal_detection/debug_image'
 
+# Reach-goal: YOLO ball+goal detections and derived behavior topics.
+SOCCER_DETECTIONS = '/soccer/detections'
+SOCCER_DETECTIONS_DEBUG_IMAGE = '/soccer/detections/debug_image'
+SOCCER_BALL_GOAL_STATE = '/soccer/ball_goal_state'
+SOCCER_REACH_GOAL_FSM_STATE = '/soccer/reach_goal_fsm_state'
+SOCCER_GOAL_SCORED = '/soccer/goal_scored'
+REACH_GOAL_BALL_POSE = '/reach_goal/ball_pose'
+
 SOCCER_CAMERA_IMAGE_RAW = '/soccer/camera/image_raw'
 SOCCER_CAMERA_INFO = '/soccer/camera/camera_info'

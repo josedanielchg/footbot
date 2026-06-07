@@ -27,15 +27,15 @@
     </physics>
 
     <scene>
-      <ambient>0.60 0.60 0.60 1.0</ambient>
-      <background>0.76 0.80 0.84 1.0</background>
+      <ambient>0.62 0.62 0.62 1.0</ambient>
+      <background>0.74 0.80 0.86 1.0</background>
       <shadows>true</shadows>
     </scene>
 
     <light name="sun" type="directional">
       <cast_shadows>true</cast_shadows>
-      <pose>0 0 5 0 0 0</pose>
-      <diffuse>0.90 0.90 0.90 1</diffuse>
+      <pose>0 0 6 0 0 0</pose>
+      <diffuse>0.92 0.92 0.92 1</diffuse>
       <specular>0.20 0.20 0.20 1</specular>
       <attenuation>
         <range>1000</range>
@@ -43,68 +43,104 @@
         <linear>0.01</linear>
         <quadratic>0.001</quadratic>
       </attenuation>
-      <direction>-0.45 0.15 -0.9</direction>
+      <direction>-0.35 0.18 -0.9</direction>
     </light>
 
-    <model name="control_field">
+    <model name="reach_goal_field">
       <static>true</static>
       <link name="field_link">
         <collision name="field_collision">
           <geometry>
-            <plane>
-              <normal>0 0 1</normal>
-              <size>5 4</size>
-            </plane>
+            <box>
+              <size>4.00 2.20 0.02</size>
+            </box>
           </geometry>
         </collision>
-        <visual name="field_visual">
-          <geometry>
-            <plane>
-              <normal>0 0 1</normal>
-              <size>5 4</size>
-            </plane>
-          </geometry>
-          <material>
-            <ambient>0.12 0.42 0.18 1</ambient>
-            <diffuse>0.12 0.52 0.22 1</diffuse>
-            <specular>0.05 0.05 0.05 1</specular>
-          </material>
-        </visual>
-        <visual name="center_reference_line">
-          <pose>0 0 0.004 0 0 0</pose>
+        <visual name="field_turf">
+          <pose>0 0 0.001 0 0 0</pose>
           <geometry>
             <box>
-              <size>0.015 2.0 0.004</size>
+              <size>4.00 2.20 0.02</size>
             </box>
           </geometry>
           <material>
-            <ambient>0.88 0.88 0.82 1</ambient>
-            <diffuse>0.88 0.88 0.82 1</diffuse>
+            <ambient>0.04 0.36 0.12 1</ambient>
+            <diffuse>0.04 0.48 0.16 1</diffuse>
+          </material>
+        </visual>
+        <visual name="center_lane">
+          <pose>0.75 0 0.018 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>2.00 0.025 0.006</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.95 0.95 0.88 1</ambient>
+            <diffuse>0.95 0.95 0.88 1</diffuse>
           </material>
         </visual>
       </link>
     </model>
 
-    <model name="goal_marker">
+    <model name="target_goal">
       <static>true</static>
-      <pose>1.85 0 0.18 0 0 0</pose>
-      <link name="goal_marker_link">
-        <collision name="collision">
+      <pose>1.75 0 0 0 0 0</pose>
+      <link name="goal_link">
+        <collision name="goal_back_collision">
+          <pose>0.05 0 0.23 0 0 0</pose>
           <geometry>
             <box>
-              <size>0.04 0.70 0.36</size>
+              <size>0.04 0.74 0.08</size>
             </box>
           </geometry>
         </collision>
-        <visual name="visual">
+        <visual name="back_bar">
+          <pose>0.05 0 0.23 0 0 0</pose>
           <geometry>
             <box>
-              <size>0.04 0.70 0.36</size>
+              <size>0.04 0.74 0.08</size>
             </box>
           </geometry>
           <material>
-            <ambient>0.20 0.36 0.78 1</ambient>
-            <diffuse>0.20 0.36 0.78 1</diffuse>
+            <ambient>0.95 0.95 0.95 1</ambient>
+            <diffuse>0.95 0.95 0.95 1</diffuse>
+          </material>
+        </visual>
+        <visual name="top_bar">
+          <pose>0.02 0 0.44 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.06 0.74 0.06</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.95 0.95 0.95 1</ambient>
+            <diffuse>0.95 0.95 0.95 1</diffuse>
+          </material>
+        </visual>
+        <visual name="left_post">
+          <pose>0.02 0.37 0.22 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.06 0.06 0.42</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.95 0.95 0.95 1</ambient>
+            <diffuse>0.95 0.95 0.95 1</diffuse>
+          </material>
+        </visual>
+        <visual name="right_post">
+          <pose>0.02 -0.37 0.22 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.06 0.06 0.42</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.95 0.95 0.95 1</ambient>
+            <diffuse>0.95 0.95 0.95 1</diffuse>
           </material>
         </visual>
       </link>

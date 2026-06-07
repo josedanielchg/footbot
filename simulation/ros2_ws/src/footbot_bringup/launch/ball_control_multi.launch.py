@@ -116,7 +116,7 @@ def create_lane_actions(lane, robot_description_file, ball_model, show_debug_vie
                 executable='create',
                 output='screen',
                 arguments=[
-                    '-world', 'footbot_stage2',
+                    '-world', 'footbot_world',
                     '-topic', robot_description_topic,
                     '-name', lane['model_name'],
                     '-allow_renaming', 'false',
@@ -137,7 +137,7 @@ def create_lane_actions(lane, robot_description_file, ball_model, show_debug_vie
                 executable='create',
                 output='screen',
                 arguments=[
-                    '-world', 'footbot_stage2',
+                    '-world', 'footbot_world',
                     '-file', ball_model,
                     '-name', lane['ball_name'],
                     '-allow_renaming', 'false',
