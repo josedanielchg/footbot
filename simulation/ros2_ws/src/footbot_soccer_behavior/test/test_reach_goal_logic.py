@@ -294,6 +294,14 @@ def test_skills_dribble_drives_forward():
     assert twist.linear.x > 0.0
 
 
+def test_skills_commit_to_goal_drives_forward_with_ball_correction():
+    skills = ReachGoalSkills()
+    twist = skills.commit_to_goal(make_state(ball_angle_rad=0.25))
+    assert twist.linear.x > 0.0
+    # Ball to the right (positive angle) -> turn right (negative angular.z).
+    assert twist.angular.z < 0.0
+
+
 def test_skills_stop_safe_is_zero():
     skills = ReachGoalSkills()
     twist = skills.stop_safe()
@@ -398,6 +406,116 @@ def test_fsm_uses_remembered_goal_to_keep_dribbling():
         fsm.update_state(time.monotonic())
         assert fsm.state == ReachGoalFsm.DRIBBLE_TO_GOAL
         assert fsm.command_for_state().linear.x > 0.0
+    finally:
+        fsm.destroy_node()
+
+
+def test_fsm_dribble_goal_loss_enters_commit_to_goal():
+    fsm = ReachGoalFsm()
+    try:
+        fresh(fsm, make_state(
+            stale=False,
+            ball_visible=True,
+            has_ball_control=True,
+            goal_visible=False,
+            goal_memory_active=False,
+            ball_angle_rad=0.0,
+        ))
+        fsm.state = ReachGoalFsm.DRIBBLE_TO_GOAL
+        fsm.update_state(time.monotonic())
+        assert fsm.state == ReachGoalFsm.COMMIT_TO_GOAL
+        assert fsm.command_for_state().linear.x > 0.0
+    finally:
+        fsm.destroy_node()
+
+
+def test_fsm_commit_to_goal_enters_goal_scored_and_stops():
+    fsm = ReachGoalFsm()
+    try:
+        fresh(fsm, make_state(
+            stale=False,
+            ball_visible=True,
+            has_ball_control=True,
+            ball_angle_rad=0.0,
+        ))
+        fsm.state = ReachGoalFsm.COMMIT_TO_GOAL
+        fsm.on_goal_scored(Bool(data=True))
+        fsm.update_state(time.monotonic())
+        assert fsm.state == ReachGoalFsm.GOAL_SCORED
+        twist = fsm.command_for_state()
+        assert twist.linear.x == pytest.approx(0.0)
+        assert twist.angular.z == pytest.approx(0.0)
+    finally:
+        fsm.destroy_node()
+
+
+def test_fsm_commit_to_goal_losing_control_recovers():
+    fsm = ReachGoalFsm()
+    try:
+        fresh(fsm, make_state(
+            stale=False,
+            ball_visible=True,
+            has_ball_control=False,
+            ball_angle_rad=0.0,
+        ))
+        fsm.state = ReachGoalFsm.COMMIT_TO_GOAL
+        fsm.update_state(time.monotonic())
+        assert fsm.state == ReachGoalFsm.RECOVER_BALL
+    finally:
+        fsm.destroy_node()
+
+
+def test_fsm_commit_to_goal_large_ball_angle_recovers():
+    fsm = ReachGoalFsm()
+    try:
+        fresh(fsm, make_state(
+            stale=False,
+            ball_visible=True,
+            has_ball_control=True,
+            ball_angle_rad=fsm.commit_to_goal_max_ball_angle_rad + 0.1,
+        ))
+        fsm.state = ReachGoalFsm.COMMIT_TO_GOAL
+        fsm.update_state(time.monotonic())
+        assert fsm.state == ReachGoalFsm.RECOVER_BALL
+    finally:
+        fsm.destroy_node()
+
+
+def test_fsm_commit_to_goal_times_out_to_search_goal():
+    fsm = ReachGoalFsm()
+    try:
+        now = time.monotonic()
+        fresh(fsm, make_state(
+            stale=False,
+            ball_visible=True,
+            has_ball_control=True,
+            ball_angle_rad=0.0,
+            goal_visible=False,
+            goal_memory_active=False,
+        ))
+        fsm.state = ReachGoalFsm.COMMIT_TO_GOAL
+        fsm.state_entry_time = now - fsm.commit_to_goal_timeout_sec - 0.1
+        fsm.update_state(now)
+        assert fsm.state == ReachGoalFsm.SEARCH_GOAL
+    finally:
+        fsm.destroy_node()
+
+
+def test_fsm_commit_to_goal_returns_to_dribble_when_goal_reappears_aligned():
+    fsm = ReachGoalFsm()
+    try:
+        fresh(fsm, make_state(
+            stale=False,
+            ball_visible=True,
+            has_ball_control=True,
+            goal_visible=True,
+            goal_memory_active=False,
+            ball_goal_aligned=True,
+            ball_angle_rad=0.0,
+        ))
+        fsm.state = ReachGoalFsm.COMMIT_TO_GOAL
+        fsm.update_state(time.monotonic())
+        assert fsm.state == ReachGoalFsm.DRIBBLE_TO_GOAL
     finally:
         fsm.destroy_node()
 

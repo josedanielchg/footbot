@@ -33,6 +33,7 @@ class ReachGoalFsm(Node):
     SEARCH_GOAL = 'SEARCH_GOAL'
     ALIGN_BALL_TO_GOAL = 'ALIGN_BALL_TO_GOAL'
     DRIBBLE_TO_GOAL = 'DRIBBLE_TO_GOAL'
+    COMMIT_TO_GOAL = 'COMMIT_TO_GOAL'
     RECOVER_BALL = 'RECOVER_BALL'
     STOP_SAFE = 'STOP_SAFE'
     GOAL_SCORED = 'GOAL_SCORED'
@@ -43,6 +44,7 @@ class ReachGoalFsm(Node):
         SEARCH_GOAL,
         ALIGN_BALL_TO_GOAL,
         DRIBBLE_TO_GOAL,
+        COMMIT_TO_GOAL,
     )
 
     def __init__(self):
@@ -72,6 +74,12 @@ class ReachGoalFsm(Node):
         self.declare_parameter('align_angular_kp', 0.6)
         self.declare_parameter('dribble_linear_velocity', 0.07)
         self.declare_parameter('dribble_angular_kp', 0.5)
+        self.declare_parameter('commit_to_goal_enabled', True)
+        self.declare_parameter('commit_to_goal_timeout_sec', 4.0)
+        self.declare_parameter('commit_to_goal_linear_velocity', 0.06)
+        self.declare_parameter('commit_to_goal_ball_angular_kp', 0.45)
+        self.declare_parameter('commit_to_goal_max_ball_angle_rad', 0.35)
+        self.declare_parameter('commit_to_goal_requires_ball_visible', True)
         self.declare_parameter('recover_reverse_velocity', -0.05)
         self.declare_parameter('recover_angular_velocity', 0.3)
         self.declare_parameter('acceleration_smoothing_alpha', 0.35)
@@ -86,6 +94,12 @@ class ReachGoalFsm(Node):
         )
         self.recover_duration_sec = float(
             self.get_parameter('recover_duration_sec').value
+        )
+        self.commit_to_goal_timeout_sec = float(
+            self.get_parameter('commit_to_goal_timeout_sec').value
+        )
+        self.commit_to_goal_max_ball_angle_rad = float(
+            self.get_parameter('commit_to_goal_max_ball_angle_rad').value
         )
 
         config = ReachGoalSkillConfig(
@@ -121,6 +135,12 @@ class ReachGoalFsm(Node):
                 self.get_parameter('dribble_linear_velocity').value
             ),
             dribble_angular_kp=float(self.get_parameter('dribble_angular_kp').value),
+            commit_to_goal_linear_velocity=float(
+                self.get_parameter('commit_to_goal_linear_velocity').value
+            ),
+            commit_to_goal_ball_angular_kp=float(
+                self.get_parameter('commit_to_goal_ball_angular_kp').value
+            ),
             recover_reverse_velocity=float(
                 self.get_parameter('recover_reverse_velocity').value
             ),
@@ -243,9 +263,21 @@ class ReachGoalFsm(Node):
 
         if self.state == self.DRIBBLE_TO_GOAL:
             if not self.goal_known(state):
-                self.transition(self.SEARCH_GOAL, now)
+                if self.can_commit_to_goal(state):
+                    self.transition(self.COMMIT_TO_GOAL, now)
+                else:
+                    self.transition(self.SEARCH_GOAL, now)
             elif not state.ball_goal_aligned:
                 self.transition(self.ALIGN_BALL_TO_GOAL, now)
+            return
+
+        if self.state == self.COMMIT_TO_GOAL:
+            if self.goal_known(state) and state.ball_goal_aligned:
+                self.transition(self.DRIBBLE_TO_GOAL, now)
+            elif not self.can_continue_commit_to_goal(state):
+                self.transition(self.RECOVER_BALL, now)
+            elif now - self.state_entry_time >= self.commit_to_goal_timeout_sec:
+                self.transition(self.SEARCH_GOAL, now)
             return
 
         if self.state == self.RECOVER_BALL:
@@ -269,6 +301,21 @@ class ReachGoalFsm(Node):
     def goal_known(state):
         return bool(state.goal_visible or state.goal_memory_active)
 
+    def can_commit_to_goal(self, state):
+        if not bool(self.get_parameter('commit_to_goal_enabled').value):
+            return False
+        return self.can_continue_commit_to_goal(state)
+
+    def can_continue_commit_to_goal(self, state):
+        requires_ball_visible = bool(
+            self.get_parameter('commit_to_goal_requires_ball_visible').value
+        )
+        if requires_ball_visible and not state.ball_visible:
+            return False
+        if not state.has_ball_control:
+            return False
+        return abs(float(state.ball_angle_rad)) <= self.commit_to_goal_max_ball_angle_rad
+
     def command_for_state(self):
         state = self.latest_state
         if self.state == self.SEARCH_BALL:
@@ -283,6 +330,8 @@ class ReachGoalFsm(Node):
             return self.skills.align_ball_to_goal(state)
         if self.state == self.DRIBBLE_TO_GOAL:
             return self.skills.dribble_to_goal(state)
+        if self.state == self.COMMIT_TO_GOAL:
+            return self.skills.commit_to_goal(state)
         if self.state == self.RECOVER_BALL:
             return self.skills.recover_ball(state)
         return self.skills.stop_safe()

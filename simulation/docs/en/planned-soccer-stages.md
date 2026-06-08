@@ -36,6 +36,8 @@ Current behavior:
 - Uses a YOLO `ball` + `goal` detector.
 - Converts `Detection2DArray` into `BallGoalState`.
 - Keeps short temporal goal memory when the goal disappears near the mouth.
+- Uses `COMMIT_TO_GOAL` to keep a slow, ball-centered push after close-range
+  goal dropouts, without using Gazebo poses for navigation.
 - Uses `reach_goal_fsm` as the only `/cmd_vel` owner.
 - Uses `reach_goal_score_monitor` as simulation referee logic to stop after a
   score.
@@ -45,6 +47,8 @@ Validation focus:
 - The model should detect both ball and goal in the initial approach.
 - Goal memory should bridge short YOLO dropouts while the ball remains
   controlled.
+- `COMMIT_TO_GOAL` should carry the final push when the goal disappears near
+  the mouth, then stop once `/soccer/goal_scored` fires.
 - `/soccer/goal_scored` should stop the robot once the ball enters the goal
   zone.
 
@@ -58,6 +62,8 @@ Ideas for implementation:
   partially visible or the goal mouth fills the frame.
 - Improve goal reacquisition after temporary loss by combining temporal memory
   with a gentle scan behavior that preserves ball control.
+- Replace the current commit fallback with stronger close-range perception once
+  the dataset includes enough near-goal examples.
 - Tune dribble speed, angular gain, and recovery duration so the robot pushes
   the ball instead of overshooting it.
 - Add recovery paths for common failures: ball slips left/right, ball gets stuck

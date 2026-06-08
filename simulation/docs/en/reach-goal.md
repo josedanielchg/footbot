@@ -112,7 +112,9 @@ The goal can disappear from the camera when the robot gets close to the open
 mouth of the goal. The estimator keeps a short temporal memory of the last
 valid goal bearing while the ball remains controlled, so the FSM can finish
 the dribble instead of falling back to `SEARCH_GOAL` because of one temporary
-YOLO dropout.
+YOLO dropout. If the dropout happens after the robot has already committed to
+`DRIBBLE_TO_GOAL`, the FSM can also enter `COMMIT_TO_GOAL`: a short, slow,
+ball-centered push that does not require a fresh goal detection.
 
 ## FSM States
 
@@ -123,6 +125,7 @@ CONTROL_BALL         ball in frontal control zone, keep it centered
 SEARCH_GOAL          ball controlled, goal unseen, rotate while holding ball
 ALIGN_BALL_TO_GOAL   ball+goal visible but off-bearing, turn gently with ball
 DRIBBLE_TO_GOAL      ball lined up with goal, drive forward
+COMMIT_TO_GOAL       near-goal fallback, push slowly using ball centering only
 RECOVER_BALL         lost control, back off and re-acquire the ball
 STOP_SAFE            stale perception or emergency stop, zero velocity
 GOAL_SCORED          simulation referee detected score, zero velocity forever
@@ -136,6 +139,13 @@ detections return. The FSM publishes a zero `Twist` on shutdown.
 When `/soccer/goal_scored` becomes true, the FSM transitions to `GOAL_SCORED`
 and keeps publishing zero velocity until the launch/session is restarted.
 
+`COMMIT_TO_GOAL` is a no-retraining fallback for close-range goal dropouts. It
+only activates after `DRIBBLE_TO_GOAL`, while the ball remains visible and under
+control. It uses `ball_angle_rad` to keep the ball centered and waits for the
+simulation referee to report `/soccer/goal_scored`. It exits to recovery if ball
+control is lost or the ball angle grows too large, and it falls back to
+`SEARCH_GOAL` if the commit timeout expires.
+
 ## Shared Defaults
 
 Estimator and FSM defaults are documented in:
@@ -147,6 +157,17 @@ simulation/ros2_ws/src/footbot_soccer_behavior/config/reach_goal.yaml
 The estimator uses the camera width (`640`) and horizontal FOV (`1.047` rad) to
 turn bbox centers into bearings, and apparent ball radius as a rough range proxy.
 This is simulation-appropriate, not a calibrated 3D estimator.
+
+Reach Goal commit defaults:
+
+```text
+commit_to_goal_enabled: true
+commit_to_goal_timeout_sec: 4.0
+commit_to_goal_linear_velocity: 0.06
+commit_to_goal_ball_angular_kp: 0.45
+commit_to_goal_max_ball_angle_rad: 0.35
+commit_to_goal_requires_ball_visible: true
+```
 
 ## `/cmd_vel` Ownership
 
@@ -181,6 +202,10 @@ easy; the goal is harder.
    - Label more `goal` examples in Label Studio.
    - Re-run `prepare_reach_goal_dataset.py`, validate, and retrain. See
      [perception-and-datasets.md](perception-and-datasets.md).
+
+`COMMIT_TO_GOAL` helps only after the robot has already seen and aligned with
+the goal. If the model never detects the goal at the start, lower the confidence
+threshold for debugging or improve the dataset.
 
 Optionally adjust the simulated goal visual in
 `footbot_gazebo/worlds/footbot_reach_goal.sdf` so it better matches the

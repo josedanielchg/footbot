@@ -29,6 +29,8 @@ class ReachGoalSkillConfig:
     align_angular_kp: float = 0.6
     dribble_linear_velocity: float = 0.07
     dribble_angular_kp: float = 0.5
+    commit_to_goal_linear_velocity: float = 0.06
+    commit_to_goal_ball_angular_kp: float = 0.45
     recover_reverse_velocity: float = -0.05
     recover_angular_velocity: float = 0.3
     acceleration_smoothing_alpha: float = 0.35
@@ -94,6 +96,17 @@ class ReachGoalSkills:
         twist.angular.z = (
             -self.config.dribble_angular_kp * float(state.goal_angle_rad)
             - self.config.keep_ball_angular_kp * float(state.ball_angle_rad)
+        )
+        return self._bounded(twist)
+
+    def commit_to_goal(self, state):
+        # Near the goal mouth, YOLO may lose the goal frame. Keep a slow,
+        # ball-centered push for a short commit window and let the simulation
+        # referee decide whether the ball scored.
+        twist = Twist()
+        twist.linear.x = self.config.commit_to_goal_linear_velocity
+        twist.angular.z = (
+            -self.config.commit_to_goal_ball_angular_kp * float(state.ball_angle_rad)
         )
         return self._bounded(twist)
 

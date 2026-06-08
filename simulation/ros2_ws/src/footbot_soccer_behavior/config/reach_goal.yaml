@@ -42,6 +42,12 @@ reach_goal_fsm:
     align_angular_kp: 0.6
     dribble_linear_velocity: 0.07
     dribble_angular_kp: 0.5
+    commit_to_goal_enabled: true
+    commit_to_goal_timeout_sec: 4.0
+    commit_to_goal_linear_velocity: 0.06
+    commit_to_goal_ball_angular_kp: 0.45
+    commit_to_goal_max_ball_angle_rad: 0.35
+    commit_to_goal_requires_ball_visible: true
     recover_reverse_velocity: -0.05
     recover_angular_velocity: 0.3
     acceleration_smoothing_alpha: 0.35
