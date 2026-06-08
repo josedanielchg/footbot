@@ -50,7 +50,7 @@ a perception/control smoke test, but it is not the main soccer behavior.
 ros2 launch footbot_bringup ball_control.launch.py scenario:=front show_debug_view:=true
 ```
 
-This is the current implemented autonomous soccer behavior. See
+This is the foundational autonomous soccer behavior for ball possession. See
 [ball-control.md](ball-control.md).
 
 ## Multi-Lane Ball Control Test

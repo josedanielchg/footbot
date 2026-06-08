@@ -7,14 +7,6 @@ estimator, bounded skills, and a finite-state machine to push the ball toward a
 visible goal. Every control decision is perception-driven; the behavior never
 reads Gazebo ground-truth poses.
 
-<p align="center">
-  <img src="src/reach-goal-debug.png" alt="Reach-goal debug screenshot" />
-</p>
-
-**Figure 1.** Planned screenshot slot. Run the reach-goal launch below and save a
-screenshot with Gazebo plus the YOLO debug window at
-`simulation/docs/en/src/reach-goal-debug.png`.
-
 ## Launch
 
 Build and source first:
@@ -39,7 +31,7 @@ The launch starts the reach-goal Gazebo world, spawns the FootBot, spawns the ba
 runs the YOLO detector, opens the optional debug viewer, and starts the reach-goal
 ball+goal state estimator, the simulation score monitor, and the reach-goal
 FSM. It does **not** start the HTTP bridge, gesture controller, simple ball
-follower, or the Stage 1 ball-control FSM.
+follower, or the Ball Control FSM.
 
 Set `run_behavior:=false` to inspect perception only (no robot motion).
 
@@ -160,7 +152,7 @@ This is simulation-appropriate, not a calibrated 3D estimator.
 
 Only `reach_goal_fsm` publishes `/cmd_vel` in reach-goal mode. Do not run
 another `/cmd_vel` owner (HTTP bridge, gesture control, ball follower, or the
-Stage 1 ball-control FSM) at the same time, or the commands will fight.
+Ball Control FSM) at the same time, or the commands will fight.
 
 ## Goal Detection Troubleshooting
 

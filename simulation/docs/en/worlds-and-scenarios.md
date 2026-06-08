@@ -10,9 +10,8 @@ simulation/ros2_ws/src/footbot_gazebo/worlds/
   <img src="src/soccer-field.png" alt="FootBot soccer field screenshot" />
 </p>
 
-**Figure 1.** Planned screenshot slot. Run
-`ros2 launch footbot_bringup soccer_field.launch.py` and save a full-field
-Gazebo screenshot at `simulation/docs/en/src/soccer-field.png`.
+**Figure 1.** Soccer field world with boundary walls, two goals, a center ball,
+and mirrored robot teams.
 
 Important worlds:
 
@@ -23,9 +22,9 @@ Important worlds:
 | `footbot_ball_follow.sdf` | Simple ball-follower test scene. |
 | `footbot_ball_control.sdf` | One robot plus dynamic ball scenarios. |
 | `footbot_ball_control_multi.sdf` | Three isolated ball-control lanes. |
-| `footbot_reach_goal.sdf` | One robot, one dynamic ball, and one goal for Reach Goal vision/behavior work. |
+| `footbot_reach_goal.sdf` | One robot, one dynamic ball, and one goal for Reach Goal vision and behavior validation. |
 | `footbot_opponent_detection.sdf` | Opponent-detection placeholders. |
-| `footbot_soccer_field.sdf` | Field, walls, goals, center ball, and mirrored teams. |
+| `footbot_soccer_field.sdf` | Full field with walls, goals, center ball, and mirrored three-robot team layout. |
 
 Validate worlds:
 

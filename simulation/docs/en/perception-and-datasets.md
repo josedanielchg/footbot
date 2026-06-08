@@ -4,9 +4,8 @@
   <img src="src/gesture-debug.png" alt="Gesture debug screenshot with MediaPipe landmarks" />
 </p>
 
-**Figure 1.** Planned screenshot slot. Run
-`ros2 launch footbot_bringup sim_gesture_control.launch.py show_debug_view:=true`
-and save the MediaPipe gesture overlay at `simulation/docs/en/src/gesture-debug.png`.
+**Figure 1.** ROS-native gesture-control debug view with MediaPipe hand
+landmarks, direction, and speed feedback.
 
 ## Camera Topics
 
@@ -102,9 +101,8 @@ Generated images and labels are ignored by Git.
   <img src="src/yolo-labeling.png" alt="Label Studio screenshot with soccer object labels" />
 </p>
 
-**Figure 2.** Planned screenshot slot. In Label Studio, open a task with visible
-`ball`, `goal`, and `opponent` boxes, then save the screenshot at
-`simulation/docs/en/src/yolo-labeling.png`.
+**Figure 2.** Label Studio project view with soccer objects labeled for YOLO
+training, including `ball`, `goal`, and `opponent` boxes.
 
 ## Conservative Augmentation
 

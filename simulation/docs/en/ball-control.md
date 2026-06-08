@@ -7,10 +7,8 @@ uses deterministic perception, state estimation, skills, and an FSM.
   <img src="src/ball-control-debug.png" alt="Ball-control debug screenshot" />
 </p>
 
-**Figure 1.** Planned screenshot slot. Run
-`ros2 launch footbot_bringup ball_control.launch.py scenario:=front show_debug_view:=true`
-and save a screenshot with Gazebo plus the debug image window at
-`simulation/docs/en/src/ball-control-debug.png`.
+**Figure 1.** Ball Control running in Gazebo with the debug image viewer showing
+the detected orange ball and state feedback.
 
 ## Launch
 
