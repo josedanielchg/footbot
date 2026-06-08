@@ -28,6 +28,10 @@ This project is a **robot football player controlled by an ESP32**. It operates 
   - 🇬🇧 [Docs — EN](#)
   - 🇪🇸 [Docs — ES](docs/es/README.md)
   - 🇫🇷 [Docs — FR](docs/fr/README.md)
+- 🤖 **Simulation (ROS 2 + Gazebo)**
+  - 🇬🇧 [Simulation — EN](simulation/README.md)
+  - 🇪🇸 [Simulation — ES](simulation/docs/es/README.md)
+  - 🇫🇷 [Simulation — FR](simulation/docs/fr/README.md)
 - ⚙️ [**How it works**](docs/en/how-it-works.md)
   - [ESP32-CAM robot — Architecture & Operation](docs/en/esp32cam_robot.md)
   - [Manual control — Architecture & Operation](docs/en/manual_control.md)

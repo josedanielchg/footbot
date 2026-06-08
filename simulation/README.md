@@ -1,6 +1,6 @@
 # FootBot Simulation — ROS 2 + Gazebo 🤖⚽
 
-[English docs](docs/en/README.md)
+[English](README.md) · [Español](docs/es/README.md) · [Français](docs/fr/README.md)
 
 > Simulation-first migration of FootBot using **ROS 2 Humble** and **Gazebo
 > Fortress**. This layer keeps the legacy ESP32 and Python apps available as
