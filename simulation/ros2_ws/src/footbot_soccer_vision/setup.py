@@ -16,6 +16,9 @@ setup(
         ('share/' + package_name + '/models', ['models/README.md']),
         ('share/' + package_name + '/models/weights', glob('models/weights/.gitkeep')),
         ('share/' + package_name + '/datasets', ['datasets/README.md']),
+        ('share/' + package_name + '/datasets/exports', ['datasets/exports/README.md']),
+        ('share/' + package_name + '/training', ['training/README.md']),
+        ('share/' + package_name + '/training/configs', glob('training/configs/*.yaml')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -32,6 +35,7 @@ setup(
         'console_scripts': [
             'opponent_detector = footbot_soccer_vision.nodes.opponent_detector_node:main',
             'goal_detector = footbot_soccer_vision.nodes.goal_detector_node:main',
+            'yolo_detector = footbot_soccer_vision.nodes.yolo_detector_node:main',
             'image_capture = footbot_soccer_vision.nodes.image_capture_node:main',
         ],
     },

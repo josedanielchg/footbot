@@ -40,6 +40,7 @@ Check launch arguments:
 ```bash
 ros2 launch footbot_bringup spawn_footbot.launch.py --show-args
 ros2 launch footbot_bringup ball_control.launch.py --show-args
+ros2 launch footbot_bringup reach_goal.launch.py --show-args
 ```
 
 Check SDF/URDF:
@@ -48,6 +49,7 @@ Check SDF/URDF:
 ros2 run xacro xacro src/footbot_description/urdf/footbot.urdf.xacro > /tmp/footbot.urdf
 check_urdf /tmp/footbot.urdf
 ign sdf -k src/footbot_gazebo/worlds/footbot_soccer_field.sdf
+ign sdf -k src/footbot_gazebo/worlds/footbot_reach_goal.sdf
 ```
 
 ## Documentation Rules

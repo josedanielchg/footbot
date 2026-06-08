@@ -124,7 +124,7 @@ def generate_launch_description():
                 executable='create',
                 output='screen',
                 arguments=[
-                    '-world', 'footbot_stage2',
+                    '-world', 'footbot_world',
                     '-topic', '/robot_description',
                     '-name', 'footbot',
                     '-x', robot_x,

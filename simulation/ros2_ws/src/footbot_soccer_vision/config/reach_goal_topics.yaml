@@ -1,0 +1,7 @@
+reach_goal_topics:
+  image_topic: /camera/image_raw
+  detections_topic: /soccer/detections
+  debug_image_topic: /soccer/detections/debug_image
+  ball_goal_state_topic: /soccer/ball_goal_state
+  fsm_state_topic: /soccer/reach_goal_fsm_state
+  cmd_vel_topic: /cmd_vel

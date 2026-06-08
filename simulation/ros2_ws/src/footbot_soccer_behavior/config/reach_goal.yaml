@@ -1,0 +1,65 @@
+ball_goal_state_estimator:
+  ros__parameters:
+    detections_topic: /soccer/detections
+    ball_goal_state_topic: /soccer/ball_goal_state
+    image_width: 640.0
+    camera_horizontal_fov_rad: 1.047
+    ball_radius_m: 0.045
+    lost_detection_timeout_sec: 0.5
+    min_ball_confidence: 0.25
+    min_goal_confidence: 0.25
+    control_min_radius_px: 85.0
+    control_center_tolerance: 0.20
+    control_hold_time_sec: 0.25
+    alignment_tolerance: 0.12
+    goal_memory_timeout_sec: 2.5
+    goal_memory_requires_ball_control: true
+    publish_rate: 30.0
+
+reach_goal_fsm:
+  ros__parameters:
+    ball_goal_state_topic: /soccer/ball_goal_state
+    cmd_vel_topic: /cmd_vel
+    fsm_state_topic: /soccer/reach_goal_fsm_state
+    goal_scored_topic: /soccer/goal_scored
+    update_rate: 20.0
+    lost_state_timeout_sec: 0.7
+    recover_duration_sec: 0.6
+    emergency_stop: false
+    max_linear_velocity: 0.14
+    max_angular_velocity: 0.8
+    search_ball_angular_velocity: 0.30
+    approach_linear_velocity: 0.12
+    approach_angular_kp: 0.9
+    approach_slowdown_radius_px: 130.0
+    approach_min_scale: 0.2
+    control_linear_velocity: 0.05
+    control_angular_kp: 0.5
+    search_goal_linear_velocity: 0.03
+    search_goal_angular_velocity: 0.25
+    keep_ball_angular_kp: 0.3
+    align_linear_velocity: 0.035
+    align_angular_kp: 0.6
+    dribble_linear_velocity: 0.07
+    dribble_angular_kp: 0.5
+    commit_to_goal_enabled: true
+    commit_to_goal_timeout_sec: 4.0
+    commit_to_goal_linear_velocity: 0.06
+    commit_to_goal_ball_angular_kp: 0.45
+    commit_to_goal_max_ball_angle_rad: 0.35
+    commit_to_goal_requires_ball_visible: true
+    recover_reverse_velocity: -0.05
+    recover_angular_velocity: 0.3
+    acceleration_smoothing_alpha: 0.35
+
+reach_goal_score_monitor:
+  ros__parameters:
+    ball_pose_topic: /reach_goal/ball_pose
+    world_pose_topic: /world/footbot_world/pose/info
+    ball_entity_name: reach_goal_ball
+    goal_scored_topic: /soccer/goal_scored
+    goal_line_x: 1.68
+    goal_half_width: 0.38
+    max_ball_z: 0.20
+    score_hold_time_sec: 0.15
+    publish_rate: 20.0

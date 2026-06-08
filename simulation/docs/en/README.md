@@ -1,15 +1,15 @@
 # FootBot Simulation Docs 🤖⚽
 
-This English documentation set explains the ROS 2 + Gazebo simulation layer
-under `simulation/`. Spanish and French versions are planned later under
-parallel language folders.
+This documentation set explains the ROS 2 + Gazebo simulation layer under
+`simulation/`: robot spawning, camera topics, control modes, soccer worlds,
+perception pipelines, dataset tools, and the current autonomous behaviors.
 
 <p align="center">
   <img src="src/simulation-overview.png" alt="FootBot simulation overview screenshot" />
 </p>
 
-**Figure 1.** Planned screenshot slot. Capture Gazebo with the FootBot spawned
-in the camera-test world and save it as `simulation/docs/en/src/simulation-overview.png`.
+**Figure 1.** FootBot running in Gazebo with the simulated robot camera and
+camera-validation scene.
 
 ---
 
@@ -20,6 +20,7 @@ in the camera-test world and save it as `simulation/docs/en/src/simulation-overv
 - 🧭 [Architecture](architecture.md)
 - 🎮 [Modes](modes.md)
 - ⚽ [Ball Control](ball-control.md)
+- 🥅 [Reach Goal With Ball](reach-goal.md)
 - 👁️ [Perception And Datasets](perception-and-datasets.md)
 - 🌍 [Worlds And Scenarios](worlds-and-scenarios.md)
 - 🧪 [Troubleshooting](troubleshooting.md)
@@ -36,7 +37,7 @@ in the camera-test world and save it as `simulation/docs/en/src/simulation-overv
 2. Read [workspace.md](workspace.md) to understand packages, builds, and generated folders.
 3. Read [architecture.md](architecture.md) for package boundaries, data flow, and `/cmd_vel` ownership.
 4. Use [modes.md](modes.md) to choose the correct launch mode.
-5. Use [ball-control.md](ball-control.md) for the current autonomous soccer behavior.
+5. Use [ball-control.md](ball-control.md) and [reach-goal.md](reach-goal.md) for the autonomous soccer behaviors.
 
 ---
 
@@ -51,35 +52,12 @@ Implemented:
 - ROS-native webcam gesture control.
 - HSV ball detection and simple ball follower.
 - Deterministic one-robot ball control with FSM orchestration.
-- YOLO opponent/goal detector plumbing and dataset capture workflow.
+- Deterministic Reach Goal behavior with YOLO ball+goal perception, temporal goal memory, and a simulation score monitor.
+- YOLO opponent/goal detector plumbing, Label Studio export handling, dataset validation, dataset preparation, training, evaluation, and prediction tools.
 - Soccer field and multi-scenario worlds.
 
 Planned only:
 
-- Reach the goal while keeping ball control.
 - Steal the ball from an opponent.
 - Team play with three robots per side.
 - RL/MARL, MCTS, or SPO-style tactical experiments.
-
----
-
-## Screenshot Asset Guide
-
-Place English documentation images in:
-
-```text
-simulation/docs/en/src/
-```
-
-Use these filenames so the docs render without later link churn:
-
-| File | Screenshot to take | Used in |
-| --- | --- | --- |
-| `simulation-overview.png` | Gazebo camera-test world with one spawned FootBot. | `simulation/README.md`, `docs/en/README.md` |
-| `soccer-field.png` | Full soccer field with walls, goals, ball, and mirrored teams. | `worlds-and-scenarios.md` |
-| `ball-control-debug.png` | Ball-control run with Gazebo and debug image visible. | `ball-control.md` |
-| `gesture-debug.png` | Webcam gesture debug window with MediaPipe landmarks. | `perception-and-datasets.md` |
-| `yolo-labeling.png` | Label Studio task with ball/goal/opponent boxes. | `perception-and-datasets.md` |
-
-Keep screenshots lightweight, preferably PNG, and avoid committing generated
-datasets or model weights.

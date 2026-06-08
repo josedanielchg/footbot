@@ -1,3 +1,5 @@
+"""Generic YOLO detector node for Reach Goal soccer detections."""
+
 import rclpy
 from rclpy.executors import ExternalShutdownException
 
@@ -9,12 +11,15 @@ def main(args=None):
     node = None
     try:
         node = OpponentDetectorNode(
-            node_name='goal_detector',
+            node_name='yolo_detector',
             defaults={
-                'image_topic': '/soccer/camera/image_raw',
-                'detections_topic': '/goal_detections',
-                'debug_image_topic': '/goal_detection/debug_image',
-                'target_classes': 'goal',
+                'image_topic': '/camera/image_raw',
+                'detections_topic': '/soccer/detections',
+                'debug_image_topic': '/soccer/detections/debug_image',
+                'target_classes': 'ball,goal',
+                'confidence_threshold': 0.25,
+                'iou_threshold': 0.45,
+                'max_fps': 10.0,
             },
         )
         rclpy.spin(node)

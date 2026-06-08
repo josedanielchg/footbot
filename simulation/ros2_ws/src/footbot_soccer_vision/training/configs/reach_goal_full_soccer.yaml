@@ -1,0 +1,16 @@
+dataset_dir: simulation/ros2_ws/src/footbot_soccer_vision/datasets/exports/full_soccer_v1
+model: yolo11n.pt
+image_size: 640
+epochs: 100
+batch: 16
+patience: 25
+device: cpu
+workers: 4
+seed: 42
+project: simulation/ros2_ws/src/footbot_soccer_vision/runs/train
+name: full_soccer_v1
+target_model_dir: simulation/ros2_ws/src/footbot_soccer_vision/models/full_soccer
+final_weights_name: full_soccer_v1_best.pt
+required_splits:
+  - train
+  - val

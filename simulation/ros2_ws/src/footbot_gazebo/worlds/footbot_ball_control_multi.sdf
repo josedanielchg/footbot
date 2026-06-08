@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <sdf version="1.8">
-  <world name="footbot_stage2">
+  <world name="footbot_world">
     <gravity>0 0 -9.81</gravity>
     <magnetic_field>0 0 0</magnetic_field>
     <atmosphere type="adiabatic"/>

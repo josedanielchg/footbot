@@ -48,7 +48,7 @@ def spawn_ball(context):
                     executable='create',
                     output='screen',
                     arguments=[
-                        '-world', 'footbot_stage2',
+                        '-world', 'footbot_world',
                         '-file', ball_model,
                         '-name', 'ball',
                         '-allow_renaming', 'false',

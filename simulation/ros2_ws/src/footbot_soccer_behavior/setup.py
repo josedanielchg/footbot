@@ -9,7 +9,10 @@ setup(
     data_files=[
         ('share/ament_index/resource_index/packages', ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-        ('share/' + package_name + '/config', ['config/ball_control.yaml']),
+        ('share/' + package_name + '/config', [
+            'config/ball_control.yaml',
+            'config/reach_goal.yaml',
+        ]),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -26,6 +29,9 @@ setup(
         'console_scripts': [
             'ball_state_estimator = footbot_soccer_behavior.state_estimation.ball_state_estimator_node:main',
             'ball_control_fsm = footbot_soccer_behavior.fsm.ball_control_fsm_node:main',
+            'ball_goal_state_estimator = footbot_soccer_behavior.state_estimation.ball_goal_state_estimator_node:main',
+            'reach_goal_fsm = footbot_soccer_behavior.fsm.reach_goal_fsm_node:main',
+            'reach_goal_score_monitor = footbot_soccer_behavior.referee.reach_goal_score_monitor_node:main',
         ],
     },
 )

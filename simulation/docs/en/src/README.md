@@ -1,8 +1,9 @@
 # Simulation Documentation Images
 
-Put English documentation screenshots in this folder.
+This folder stores the screenshots used by the English simulation
+documentation.
 
-Recommended filenames:
+Current images:
 
 - `simulation-overview.png`
 - `soccer-field.png`
@@ -10,5 +11,5 @@ Recommended filenames:
 - `gesture-debug.png`
 - `yolo-labeling.png`
 
-Screenshots should show the actual simulation or tooling state. Do not put
-generated datasets, model weights, or large raw captures here.
+Keep images lightweight and documentation-focused. Do not put generated
+datasets, model weights, or large raw captures here.

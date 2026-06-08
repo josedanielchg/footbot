@@ -4,9 +4,8 @@
   <img src="src/gesture-debug.png" alt="Gesture debug screenshot with MediaPipe landmarks" />
 </p>
 
-**Figure 1.** Planned screenshot slot. Run
-`ros2 launch footbot_bringup sim_gesture_control.launch.py show_debug_view:=true`
-and save the MediaPipe gesture overlay at `simulation/docs/en/src/gesture-debug.png`.
+**Figure 1.** ROS-native gesture-control debug view with MediaPipe hand
+landmarks, direction, and speed feedback.
 
 ## Camera Topics
 
@@ -56,6 +55,27 @@ Default outputs:
 
 Detections use `vision_msgs/msg/Detection2DArray`.
 
+Reach-goal ball/goal detections use:
+
+```text
+/soccer/detections
+/soccer/detections/debug_image
+```
+
+Run the one-robot Reach-goal vision scene:
+
+```bash
+ros2 launch footbot_bringup reach_goal.launch.py \
+  model_path:=/media/josedanielchg/Data/Proyectos/Robotica/footbot/simulation/ros2_ws/src/footbot_soccer_vision/models/reach_goal_ball_goal/reach_goal_ball_goal_v1_best.pt \
+  target_classes:=ball,goal \
+  show_debug_view:=true
+```
+
+If using `soccer_field.launch.py` directly, pass
+`image_topic:=/soccer/camera/image_raw` to the YOLO detector; otherwise the
+debug image window will stay black because the detector is listening to the
+wrong camera topic.
+
 Install optional YOLO dependencies:
 
 ```bash
@@ -81,9 +101,8 @@ Generated images and labels are ignored by Git.
   <img src="src/yolo-labeling.png" alt="Label Studio screenshot with soccer object labels" />
 </p>
 
-**Figure 2.** Planned screenshot slot. In Label Studio, open a task with visible
-`ball`, `goal`, and `opponent` boxes, then save the screenshot at
-`simulation/docs/en/src/yolo-labeling.png`.
+**Figure 2.** Label Studio project view with soccer objects labeled for YOLO
+training, including `ball`, `goal`, and `opponent` boxes.
 
 ## Conservative Augmentation
 
@@ -102,3 +121,38 @@ python3 simulation/ros2_ws/src/footbot_soccer_vision/datasets/augment_dataset.py
 
 The output remains unlabeled. Label generated images manually before YOLO
 training.
+
+## Reach Goal Training Preparation
+
+Put Label Studio YOLO exports under:
+
+```text
+simulation/ros2_ws/src/footbot_soccer_vision/datasets/exports/
+```
+
+Prepare a `ball` + `goal` dataset:
+
+```bash
+python3 simulation/ros2_ws/src/footbot_soccer_vision/datasets/prepare_reach_goal_dataset.py \
+  --input-dir simulation/ros2_ws/src/footbot_soccer_vision/datasets/exports/soccer_v1_labelstudio_yolo \
+  --output-dir simulation/ros2_ws/src/footbot_soccer_vision/datasets/exports/reach_goal_ball_goal_v1 \
+  --classes ball goal \
+  --copy-images \
+  --seed 42
+```
+
+Validate it:
+
+```bash
+python3 simulation/ros2_ws/src/footbot_soccer_vision/datasets/validate_yolo_dataset.py \
+  --dataset-dir simulation/ros2_ws/src/footbot_soccer_vision/datasets/exports/reach_goal_ball_goal_v1 \
+  --require-splits train val
+```
+
+Dry-run training:
+
+```bash
+python3 simulation/ros2_ws/src/footbot_soccer_vision/training/train_yolo_reach_goal.py \
+  --config simulation/ros2_ws/src/footbot_soccer_vision/training/configs/reach_goal_ball_goal.yaml \
+  --dry-run
+```
