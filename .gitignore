@@ -19,3 +19,20 @@ label_studio/
 yolo*.pt
 runs/
 *.zip
+.claude/
+
+# LaTeX build artifacts
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.toc
+
+# ROS 2 / colcon build artifacts generated at the repo root
+/build/
+/install/
+/log/
+
+# Extra Python virtualenvs in the source tree
+soccer_vision/.venv_linux/
