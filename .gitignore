@@ -28,6 +28,9 @@ runs/
 *.log
 *.out
 *.toc
+*.synctex.gz
+*.nav
+*.snm
 
 # ROS 2 / colcon build artifacts generated at the repo root
 /build/
