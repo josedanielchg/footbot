@@ -1,0 +1,12 @@
+csv/*
+!csv/.gitkeep
+
+__pycache__/
+**/__pycache__/
+*.pyc
+
+*.db3
+*.sqlite3
+*.mcap
+bags/
+raw/

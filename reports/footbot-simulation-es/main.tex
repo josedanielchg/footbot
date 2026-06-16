@@ -16,6 +16,7 @@
 % ---------- Disposición ----------
 \usepackage[a4paper,margin=2.5cm,headheight=15pt]{geometry}
 \usepackage{graphicx}
+\usepackage{float}
 \usepackage{xcolor}
 \usepackage{booktabs}
 \usepackage{array}
@@ -26,6 +27,8 @@
 \usepackage{caption}
 \usepackage[document]{ragged2e} % todo el cuerpo alineado a la izquierda (sin justificar)
 \usepackage{hyperref}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
 
 % ---------- Paleta de color ----------
 \definecolor{unetblue}{HTML}{0B3D66}
@@ -161,7 +164,7 @@ la Sección~\ref{sec:fases} detalla las fases ejecutadas; las Secciones~\ref{sec
 y~\ref{sec:percepcion} profundizan en los comportamientos autónomos y en la percepción;
 la Sección~\ref{sec:resultados} resume el estado actual y la Sección~\ref{sec:futuro} el trabajo futuro.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.86\textwidth]{figures/simulation-overview.png}
 \caption{FootBot generado en Gazebo con la cámara simulada del robot, la iluminación y los
@@ -169,6 +172,44 @@ objetos de validación visibles. La simulación reproduce el robot y su sensor d
 de un mundo controlado y repetible.}
 \label{fig:overview}
 \end{figure}
+
+\subsection{¿Qué son ROS\,2 y Gazebo?}
+\textbf{ROS\,2} (\emph{Robot Operating System 2}) no es un sistema operativo, sino un \emph{middleware}
+de robótica: un conjunto de librerías y convenciones para construir el sistema como un grafo de procesos
+independientes —los \emph{nodos}— que se comunican publicando y suscribiéndose a canales con nombre, los
+\emph{topics}. Aporta mensajes tipados, parámetros, lanzamiento coordinado y descubrimiento automático,
+lo que favorece un diseño modular y reutilizable.
+
+\textbf{Gazebo} (edición \emph{Fortress}) es un \emph{simulador} de robótica 3D: modela física
+(gravedad, colisiones, fricción), sensores (cámaras, odometría) y mundos completos, y permite generar
+(\emph{spawn}) un robot para observar su comportamiento sin hardware. La pieza que une ambos mundos es
+el \code{ros_gz_bridge}, que traduce los datos entre Gazebo y los \emph{topics} de ROS\,2; gracias a él,
+los nodos de percepción y control operan igual frente a un robot real o uno simulado.
+
+\subsection{Continuidad con el trabajo previo}
+Este trabajo da continuidad al reporte anterior del \emph{Auto Soccer Bot}, centrado en el robot físico
+ESP32\mbox{-}CAM de control híbrido. Aquel sistema ya logró: (i) teleoperación manual por gestos de la
+mano (MediaPipe); (ii) un modo automático de \textbf{seguimiento del balón} con percepción híbrida
+HSV+YOLO y una FSM; y (iii) el entrenamiento y validación de detectores YOLO de \code{goal} y
+\code{opponent} (mAP@0.5 = 0.991). Sin embargo, esos detectores de portería y oponente \textbf{no
+llegaron a integrarse} en la FSM del modo automático: la fusión de decisiones multiobjeto quedó
+explícitamente como trabajo futuro.
+
+¿Qué cambió de forma notable al pasar a la simulación?
+\begin{itemize}
+  \item \textbf{Plataforma.} Del robot ESP32\mbox{-}CAM físico a un FootBot simulado en Gazebo (modelo
+  URDF de tracción diferencial); el \emph{stream} MJPEG pasa a ser un \emph{topic} de cámara.
+  \item \textbf{Comunicación y latencia.} Del enlace Wi\mbox{-}Fi/HTTP —sensible a la latencia, que
+  obligaba a retención del último frame y a limitar la tasa de comandos— a \emph{topics} de ROS\,2 en un
+  grafo local, con latencia mucho menor y estable (Sección~\ref{sec:motivacion}).
+  \item \textbf{La portería, por fin integrada.} El comportamiento \emph{Llegar a la portería} fusiona
+  \code{ball}\,+\,\code{goal} en el lazo percepción$\to$decisión y conduce el balón a la portería: la
+  fusión multiobjeto que el reporte previo dejaba pendiente \textbf{ya está parcialmente realizada}
+  (resta el oponente).
+  \item \textbf{Ingeniería.} De aplicaciones monolíticas en el host a \textbf{paquetes ROS\,2 modulares},
+  con un patrón determinista percepción$\to$estado$\to$FSM, una suite de pruebas y un \emph{árbitro} de
+  simulación para puntuar goles.
+\end{itemize}
 
 % ============================ 2. MOTIVACIÓN ============================
 \section{Motivación: ¿por qué migrar a simulación?}
@@ -191,11 +232,27 @@ y reproducible}. Las razones principales fueron:
   solo robot real.
   \item \textbf{Independencia del hardware y la iluminación.} La cámara simulada entrega imágenes
   consistentes, eliminando la fragilidad del detector frente a cambios de luz que afectaba al lazo físico.
+  \item \textbf{Latencia menor y estable.} En el robot físico, el enlace Wi\mbox{-}Fi/HTTP entre el
+  portátil y el ESP32 añadía un retardo variable al lazo de control; en simulación, la comunicación por
+  \emph{topics} locales reduce y estabiliza esa latencia.
   \item \textbf{Base para comportamientos avanzados.} Posesión del balón y conducción hacia portería
   requieren muchísimas repeticiones; la simulación las hace prácticas.
   \item \textbf{Continuidad.} El trabajo previo no se descarta: el robot ESP32 y sus apps Python quedan
   como referencia, y un puente mantiene la compatibilidad del antiguo protocolo HTTP \code{/move}.
 \end{itemize}
+
+\begin{nota}[Latencia y compatibilidad HTTP]
+Una limitación importante del montaje físico era la \textbf{latencia variable del enlace Wi\mbox{-}Fi}
+entre el portátil y el ESP32: tanto el vídeo como los comandos viajaban por HTTP, lo que introducía
+retardo y obligaba a paliativos como la retención del último frame y la limitación de la tasa de
+comandos (el robot llegaba a \emph{perseguir el pasado}). En la simulación, la comunicación ocurre por
+\emph{topics} de ROS\,2 dentro de un mismo grafo local, de modo que esa latencia se \textbf{reduce
+drásticamente y se estabiliza}.
+
+¿Conservamos el modo de operar por HTTP? \textbf{Sí, pero solo por compatibilidad}: el paquete
+\code{footbot_bridge} mantiene vivo el antiguo endpoint HTTP \code{/move} traduciéndolo a \code{/cmd_vel}.
+El control nativo y recomendado dentro de la simulación es directamente por el \emph{topic} \code{/cmd_vel}.
+\end{nota}
 
 \begin{nota}[Regla de oro del control]
 En cualquier modo de lanzamiento, \textbf{un solo nodo} debe ser dueño de \code{/cmd_vel} a la vez.
@@ -213,7 +270,7 @@ conceptos (tracción diferencial, cámara, detección de balón, FSM) pero apoy�
 infraestructura nativa de ROS y Gazebo. La Tabla~\ref{tab:mapeo} resume la correspondencia.
 
 \renewcommand{\arraystretch}{1.3}
-\begin{table}[htbp]
+\begin{table}[H]
 \caption{Correspondencia entre el robot físico y su equivalente simulado.}
 \label{tab:mapeo}
 \raggedright
@@ -262,7 +319,7 @@ El \emph{workspace} de ROS\,2 vive en \code{simulation/ros2_ws/} y se divide en 
 responsabilidades acotadas (Tabla~\ref{tab:paquetes}).
 
 \renewcommand{\arraystretch}{1.25}
-\begin{table}[htbp]
+\begin{table}[H]
 \caption{Paquetes del \emph{workspace} de simulación y su responsabilidad.}
 \label{tab:paquetes}
 \raggedright
@@ -288,7 +345,39 @@ responsabilidades acotadas (Tabla~\ref{tab:paquetes}).
 \subsection{Flujo de datos}
 El patrón general es: Gazebo publica sensores (cámara, odometría) por Gazebo Transport, el
 \code{ros_gz_bridge} los traduce a topics de ROS, los nodos de percepción producen detecciones,
-los estimadores las convierten en estado, y las FSM deciden y publican \code{/cmd_vel}.
+los estimadores las convierten en estado, y las FSM deciden y publican \code{/cmd_vel}
+(Fig.~\ref{fig:arch}).
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[
+  every node/.style={font=\footnotesize},
+  box/.style={draw=unetblue, line width=0.7pt, rounded corners=2pt, fill=softgray,
+              minimum width=26mm, minimum height=13mm, align=center, text width=24mm},
+  gz/.style ={box, fill=unetblue!12},
+  per/.style={box, draw=accent, fill=accent!15},
+  beh/.style={box, fill=unetblue!10},
+  ar/.style ={-{Stealth[length=2mm]}, line width=0.8pt, draw=darkgray},
+  tl/.style ={font=\scriptsize\ttfamily, fill=white, inner sep=1.5pt}
+]
+  \node[gz]  (gz) {Gazebo\\[-1pt]{\scriptsize mundo + robot}};
+  \node[box, right=28mm of gz] (br) {ros\_gz\_bridge};
+  \node[per, right=12mm of br] (pe) {Percepción\\[-1pt]{\scriptsize ball\_detector / yolo\_detector}};
+  \node[per, right=26mm of pe] (es) {Estimador\\[-1pt]{\scriptsize de estado}};
+  \node[beh, right=30mm of es] (fs) {FSM\\[-1pt]{\scriptsize ball\_control\_fsm / reach\_goal\_fsm}};
+  \draw[ar] (gz) -- (br) node[tl,midway,above]{/camera/image\_raw};
+  \draw[ar] (br) -- (pe);
+  \draw[ar] (pe) -- (es) node[tl,midway,above]{/ball\_detection};
+  \draw[ar] (es) -- (fs) node[tl,midway,above]{/soccer/ball\_state};
+  \draw[ar] (fs.south) -- ++(0,-9mm) -| (gz.south);
+  \path (fs.south) -- (gz.south) node[tl,midway,yshift=-9mm]{/cmd\_vel};
+\end{tikzpicture}}
+\caption{Arquitectura abstracta y flujo de \emph{topics}: Gazebo entrega la imagen de la cámara, el
+puente la traduce a ROS, la percepción detecta, el estimador produce el estado y la FSM cierra el lazo
+publicando \texttt{/cmd\_vel}. Se muestran solo los \emph{topics} principales.}
+\label{fig:arch}
+\end{figure}
 
 \begin{nota}[Tubería de \emph{Control de balón}]
 \code{/camera/image_raw} $\rightarrow$ \code{ball_detector} $\rightarrow$ \code{/ball_detection}
@@ -360,7 +449,7 @@ naranja en una zona de control frontal (Fig.~\ref{fig:ballcontrol}). El detector
 balón y el campo de visión de la cámara para estimar un rango aproximado: apropiado para simulación,
 sin pretender ser un estimador de pose 3D calibrado.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.78\textwidth]{figures/ball-control-debug.png}
 \caption{Comportamiento de Control de balón ejecutándose en Gazebo, con el visor de depuración que
@@ -377,7 +466,7 @@ percepción: el comportamiento \textbf{nunca} lee las poses reales (\emph{ground
 navegar. La Tabla~\ref{tab:reachstates} resume sus estados.
 
 \renewcommand{\arraystretch}{1.2}
-\begin{table}[htbp]
+\begin{table}[H]
 \caption{Estados de la FSM de \emph{Llegar a la portería}.}
 \label{tab:reachstates}
 \raggedright
@@ -400,7 +489,55 @@ navegar. La Tabla~\ref{tab:reachstates} resume sus estados.
 \end{tabular}
 \end{table}
 
-Dos mecanismos hacen robusto el comportamiento. Primero, una \textbf{memoria temporal de la portería}:
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[
+  >={Stealth[length=2mm]},
+  st/.style={draw, rounded corners=2pt, line width=0.7pt, fill=softgray,
+             minimum width=22mm, minimum height=8mm, inner sep=2pt,
+             font=\scriptsize\ttfamily, align=center},
+  main/.style={st, draw=unetblue, fill=unetblue!10},
+  goal/.style={st, draw=accent, line width=1pt, fill=accent!20},
+  exc/.style ={st, draw=darkgray, fill=white},
+  e/.style={->, line width=0.7pt, draw=unetblue},
+  d/.style={->, line width=0.6pt, draw=darkgray, densely dashed},
+  lbl/.style={font=\tiny, fill=white, inner sep=1pt}
+]
+  % fila superior (camino principal)
+  \node[main] (sb) at (0,0)    {SEARCH\_BALL};
+  \node[main] (ab) at (3.8,0)  {APPROACH\_BALL};
+  \node[main] (cb) at (7.6,0)  {CONTROL\_BALL};
+  \node[main] (sg) at (11.4,0) {SEARCH\_GOAL};
+  % fila inferior (regreso)
+  \node[main] (al) at (11.4,-2){ALIGN\_BALL\_TO\_GOAL};
+  \node[main] (dr) at (7.6,-2) {DRIBBLE\_TO\_GOAL};
+  \node[main] (co) at (3.8,-2) {COMMIT\_TO\_GOAL};
+  \node[goal] (gs) at (0,-2)   {GOAL\_SCORED};
+  % estados de excepción
+  \node[exc] (rb) at (5.7,-3.9){RECOVER\_BALL};
+  \node[exc] (ss) at (9.5,-3.9){STOP\_SAFE};
+  % camino principal
+  \draw[e] (sb) -- (ab);
+  \draw[e] (ab) -- (cb);
+  \draw[e] (cb) -- (sg);
+  \draw[e] (sg) -- (al);
+  \draw[e] (al) -- (dr);
+  \draw[e] (dr) -- (co);
+  \draw[e] (co) -- (gs);
+  % excepciones (discontinuo)
+  \draw[d] (dr) -- (rb) node[lbl,midway,right]{pierde control};
+  \draw[d] (al) -- (ss) node[lbl,midway,right]{percep. obsoleta};
+\end{tikzpicture}}
+\caption{Esquema de la FSM de \emph{Llegar a la portería}. En azul, el camino principal (de buscar el
+balón a marcar, con \texttt{GOAL\_SCORED} resaltado como estado terminal); en líneas discontinuas, las
+salidas de recuperación y de seguridad. Cualquier estado de posesión puede caer a \texttt{RECOVER\_BALL}
+al perder el control, y la percepción obsoleta fuerza \texttt{STOP\_SAFE}; ambos retoman la búsqueda al
+recuperarse.}
+\label{fig:fsm}
+\end{figure}
+
+La Figura~\ref{fig:fsm} resume gráficamente estas transiciones. Dos mecanismos hacen robusto el comportamiento. Primero, una \textbf{memoria temporal de la portería}:
 cuando el robot se acerca a la boca y la portería desaparece del cuadro, el estimador reutiliza
 brevemente la última orientación válida, evitando recaer en \code{SEARCH_GOAL} por una pérdida puntual
 de YOLO. Segundo, el estado \code{COMMIT_TO_GOAL}, un respaldo \emph{sin reentrenamiento} que, tras
@@ -426,7 +563,7 @@ YOLO de \code{footbot_soccer_vision}, que emiten \code{vision_msgs/Detection2DAr
 El control por gestos, heredado del modo manual del robot real, también se reprodujo de forma nativa en ROS
 con MediaPipe (Fig.~\ref{fig:gesture}).
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.74\textwidth]{figures/gesture-debug.png}
 \caption{Control por gestos nativo de ROS: vista de depuración con los \emph{landmarks} de la mano de
@@ -448,12 +585,38 @@ Para \emph{Llegar a la portería} se construyó una tubería de datos completa y
   cierran el ciclo.
 \end{enumerate}
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.74\textwidth]{figures/yolo-labeling.png}
 \caption{Etiquetado de objetos de fútbol en Label Studio para el entrenamiento de YOLO, con cajas para
 \texttt{ball}, \texttt{goal} y \texttt{opponent}.}
 \label{fig:labeling}
+\end{figure}
+
+\paragraph{Desempeño del detector.}
+Sobre el conjunto de validación, el detector YOLO de \code{ball} y \code{goal} \textbf{funciona muy bien}:
+la matriz de confusión del entrenamiento (Fig.~\ref{fig:confmat}) muestra el balón clasificado
+correctamente en el 100\,\% de los casos y la portería en el 90\,\% (con un 10\,\% de porterías no
+detectadas, confundidas con el fondo). Es decir, \textbf{en las imágenes del \emph{dataset} la percepción
+es fiable}. La limitación real no está en el \emph{dataset}, sino \textbf{en despliegue, cuando el robot se
+acerca demasiado a la portería}: a corta distancia la portería deja de caber en el cuadro de la cámara y el
+detector ya no la reconoce de forma continua, lo que degrada el remate (Sección~\ref{sec:resultados-exp}).
+
+\begin{figure}[H]
+\centering
+\begin{minipage}[b]{0.49\textwidth}\centering
+  \includegraphics[width=\linewidth]{figures/metrics/yolo_confusion_matrix_normalized.png}\par\smallskip
+  {\small (a) Normalizada}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.49\textwidth}\centering
+  \includegraphics[width=\linewidth]{figures/metrics/yolo_confusion_matrix.png}\par\smallskip
+  {\small (b) Conteos absolutos}
+\end{minipage}
+\caption{Matriz de confusión del entrenamiento de YOLO (\texttt{ball}\,+\,\texttt{goal}) sobre el conjunto
+de validación: (a)~normalizada y (b)~en conteos absolutos. El balón se detecta sin error y la portería con
+alta fiabilidad en el \emph{dataset}; el problema de detección aparece sólo a muy corta distancia durante
+la simulación (Sección~\ref{sec:resultados-exp}).}
+\label{fig:confmat}
 \end{figure}
 
 % ============================ 8. RESULTADOS ============================
@@ -481,13 +644,69 @@ El \emph{workspace} compila con \emph{colcon} y la suite de pruebas del paquete
 cubriendo la lógica de los estimadores de estado y de las FSM.
 \end{nota}
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.80\textwidth]{figures/soccer-field.png}
 \caption{Mundo de campo de fútbol completo: paredes de límite, dos porterías, un balón central y
 equipos de robots en espejo.}
 \label{fig:field}
 \end{figure}
+
+\subsection{Análisis experimental: Llegar a la portería (5 episodios)}
+\label{sec:resultados-exp}
+
+Se ejecutó una tanda de \textbf{cinco episodios} del comportamiento \emph{Llegar a la portería},
+registrando los \emph{topics} con \emph{rosbag2} y procesándolos de forma automática (los \emph{scripts}
+de medición y graficado viven en \code{reports/footbot-simulation-es/metrics/}). La
+Figura~\ref{fig:reachgoal-exp} muestra una vista cenital del campo —la portería arriba y el robot
+partiendo desde abajo— con la trayectoria combinada de los cinco episodios y los mapas de densidad de
+permanencia del robot y del balón.
+
+El robot \textbf{controla el balón de forma rápida y consistente} (primer control en $\approx$9~s en
+todos los episodios), pero \textbf{rematar resulta costoso}: sólo \textbf{1 de 5} episodios terminó en
+gol (20\,\% de éxito) y, en ese caso, tardó cerca de \textbf{269~s}. Tanto las trayectorias como los
+mapas de calor muestran que el robot y el balón \textbf{acumulan la mayor parte del tiempo justo frente a
+la boca de la portería} (zona superior, en torno a $x\approx1{,}4$~m), sin completar el remate.
+
+\begin{figure}[H]
+\centering
+\begin{minipage}[b]{0.30\textwidth}\centering
+  \includegraphics[height=7.8cm]{figures/metrics/trajectory_xy_vertical.png}\par\smallskip
+  {\small (a) Trayectorias}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.33\textwidth}\centering
+  \includegraphics[height=7.8cm]{figures/metrics/robot_heatmap_vertical.png}\par\smallskip
+  {\small (b) Densidad — robot}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.33\textwidth}\centering
+  \includegraphics[height=7.8cm]{figures/metrics/ball_heatmap_vertical.png}\par\smallskip
+  {\small (c) Densidad — balón}
+\end{minipage}
+\caption{Análisis cenital de cinco episodios de \emph{Llegar a la portería} (la portería está arriba; el
+robot parte desde abajo y avanza hacia ella). (a)~Trayectorias combinadas del robot (azul) y del balón
+(naranja); la estrella marca el gol del episodio~5. (b)~Densidad de permanencia del robot y (c)~del balón:
+ambos concentran el tiempo \emph{frente a la boca de la portería}, donde la detección visual de la
+portería se vuelve intermitente a corta distancia.}
+\label{fig:reachgoal-exp}
+\end{figure}
+
+\paragraph{Causa principal: detección de la portería a corta distancia.}
+El comportamiento se guía por la detección visual de la portería con YOLO. Cuando el robot se
+\textbf{acerca mucho}, la portería \textbf{deja de caber por completo en el cuadro de la cámara} y el
+detector ya no la reconoce con precisión ni de forma continua: las detecciones se vuelven intermitentes y
+la FSM \textbf{pierde la referencia de la portería} repetidamente. En consecuencia, el robot alterna entre
+aproximarse, perder el objetivo y \textbf{recuperar/realinear}, lo que dispara el tiempo de remate. La
+\emph{memoria temporal de la portería} (Sección~\ref{sec:comportamientos}) atenúa las desapariciones
+breves, pero a muy corta distancia no es suficiente.
+
+El \textbf{reparto de tiempo de la FSM} (medido sobre \code{/soccer/reach_goal_fsm_state}) confirma el
+patrón: \code{RECOVER_BALL} concentra alrededor del \textbf{33\,\%} del tiempo y \code{APPROACH_BALL} otro
+\textbf{26\,\%}, mientras que \code{DRIBBLE_TO_GOAL} —el avance de remate— apenas acumula tiempo. Es decir,
+el robot pasa la mayor parte del episodio \emph{recuperando y reaproximándose} en vez de empujar el balón
+al fondo. Más revelador aún: el estado de \textbf{respaldo a corta distancia} \code{COMMIT_TO_GOAL}
+(Tabla~\ref{tab:reachstates}) —diseñado precisamente para empujar \emph{sin} depender de ver la portería—
+\textbf{no se activó en ninguno de los cinco episodios}; el robot siguió dependiendo de la detección
+continua de la portería, que es justo lo que falla de cerca.
 
 % ============================ 9. TRABAJO FUTURO ============================
 \section{Trabajo futuro}
@@ -497,6 +716,14 @@ La hoja de ruta mantiene el principio determinista como base estable y añade t�
 medibles:
 
 \begin{itemize}
+  \item \textbf{Detección de la portería a corta distancia (prioritario):} resolver la pérdida de detección
+  cuando el robot está muy cerca y la portería no cabe en el cuadro (Sección~\ref{sec:resultados-exp}).
+  Posibles soluciones: (i)~ampliar el \emph{dataset} con vistas de portería a muy corta distancia y
+  parciales, y reentrenar YOLO; (ii)~detectar \emph{partes} de la portería (postes, línea de meta) en lugar
+  de la caja completa; (iii)~usar una cámara de mayor campo de visión (FOV); (iv)~activar de forma fiable el
+  estado de respaldo \code{COMMIT_TO_GOAL} —un \emph{modo de remate por proximidad} que empuja el balón con
+  la última pose conocida de la portería y odometría/\emph{dead reckoning}, sin exigir detección continua—;
+  y (v)~reforzar la memoria temporal de la portería con anclaje geométrico.
   \item \textbf{Interacción con oponentes:} detectar a un oponente con el balón y disputar la posesión sin
   desestabilizar los comportamientos base; estados de FSM para observar, aproximarse, disputar y recuperar.
   \item \textbf{Juego en equipo:} soportar tres robots por bando con roles (portero, defensor, atacante),
