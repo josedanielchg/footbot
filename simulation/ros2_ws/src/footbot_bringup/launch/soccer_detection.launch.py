@@ -42,7 +42,7 @@ def generate_launch_description():
         'model_name': model_name,
         'confidence_threshold': ParameterValue(confidence_threshold, value_type=float),
         'iou_threshold': ParameterValue(iou_threshold, value_type=float),
-        'device': device,
+        'device': ParameterValue(device, value_type=str),
         'image_size': ParameterValue(image_size, value_type=int),
         'max_fps': ParameterValue(max_fps, value_type=float),
         'publish_debug_image': True,

@@ -89,7 +89,7 @@ def generate_launch_description():
                 LaunchConfiguration('iou_threshold'),
                 value_type=float,
             ),
-            'device': LaunchConfiguration('device'),
+            'device': ParameterValue(LaunchConfiguration('device'), value_type=str),
             'image_size': ParameterValue(LaunchConfiguration('image_size'), value_type=int),
             'max_fps': ParameterValue(LaunchConfiguration('max_fps'), value_type=float),
             'max_detections': ParameterValue(LaunchConfiguration('max_detections'), value_type=int),

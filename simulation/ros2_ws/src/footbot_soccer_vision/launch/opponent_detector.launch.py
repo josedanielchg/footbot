@@ -38,7 +38,7 @@ def generate_launch_description():
             'target_classes': target_classes,
             'confidence_threshold': ParameterValue(confidence_threshold, value_type=float),
             'iou_threshold': ParameterValue(iou_threshold, value_type=float),
-            'device': device,
+            'device': ParameterValue(device, value_type=str),
             'image_size': ParameterValue(image_size, value_type=int),
             'max_fps': ParameterValue(max_fps, value_type=float),
             'max_detections': ParameterValue(max_detections, value_type=int),
