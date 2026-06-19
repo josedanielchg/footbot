@@ -9,9 +9,10 @@
 % ---------- Idioma y tipografía ----------
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage[spanish,es-tabla]{babel}
+\usepackage[spanish,es-tabla,es-noshorthands]{babel} % es-noshorthands: evita que ',' '>' choquen con TikZ
 \usepackage{lmodern}
 \usepackage{microtype}
+\usepackage{amsmath}
 
 % ---------- Disposición ----------
 \usepackage[a4paper,margin=2.5cm,headheight=15pt]{geometry}
@@ -29,6 +30,8 @@
 \usepackage{hyperref}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning}
+\usepackage{parskip} % línea en blanco entre párrafos (más fácil de leer)
+\setlength{\parskip}{0.7\baselineskip}
 
 % ---------- Paleta de color ----------
 \definecolor{unetblue}{HTML}{0B3D66}
@@ -457,6 +460,49 @@ muestra el balón naranja detectado y la realimentación de estado.}
 \label{fig:ballcontrol}
 \end{figure}
 
+\paragraph{¿Cómo mantiene el balón centrado? (paso a paso).}
+La idea es sencilla: el robot \textbf{solo ve el balón en la imagen} de la cámara, no conoce su posición
+real. Que el balón esté \emph{centrado} significa que aparece en el \textbf{centro horizontal} de la
+imagen. El robot mide cuánto se desvía de ese centro y gira para corregirlo, igual que cuando caminamos
+hacia algo que estamos mirando.
+
+\textbf{Paso 1 — Medir qué tan descentrado está.} Si el balón aparece en la columna $u$ (en píxeles) de
+una imagen de ancho $W$, el centro está en $W/2$. Esa desviación se traduce a un \emph{ángulo de rumbo}
+$\theta$ (cuánto tendría que girar el robot para mirarlo de frente):
+\begin{equation}
+\theta = \arctan\!\left(\frac{u - W/2}{f}\right).
+\end{equation}
+Si el balón está justo en el centro, $\theta = 0$; si está a la derecha, $\theta > 0$; si está a la
+izquierda, $\theta < 0$. (El factor $f$ solo traduce píxeles a ángulos según el lente de la cámara.)
+
+\textbf{Paso 2 — Estimar a qué distancia está.} Cuanto más grande se ve el balón, más cerca está. A
+partir de su radio aparente $r$ (px) y su radio real conocido $R$:
+\begin{equation}
+d = \frac{f\,R}{r}.
+\end{equation}
+
+\textbf{Paso 3 — Girar para centrarlo.} El robot gira con una velocidad angular $\omega$
+\textbf{proporcional al error}: si el balón está muy descentrado, corrige rápido; cuando ya está casi
+centrado, gira suave:
+\begin{equation}
+\omega = -\,K_p\,\theta .
+\end{equation}
+Aquí $K_p$ es solo ``cuánto'' corrige, y el signo negativo significa ``gira hacia el lado que reduce el
+error''. Además, el comando se \textbf{suaviza} (se mezcla con el anterior) para que el giro no sea brusco
+y se \textbf{limita} a una velocidad máxima de seguridad.
+
+\textbf{Paso 4 — Decidir que ``ya lo controla''.} No basta con un instante: el robot da el balón por
+\emph{controlado} solo si lleva un tiempo $T_{\mathrm{hold}}$ con el balón \textbf{centrado y cerca} a la
+vez:
+\begin{equation}
+\lvert\theta\rvert \le \theta_{\mathrm{tol}}
+\quad\text{y}\quad
+d \le d_{\mathrm{ctrl}}
+\quad\text{durante}\ \ge T_{\mathrm{hold}}.
+\end{equation}
+En la simulación se usan $K_p = 0{,}9$, $\theta_{\mathrm{tol}} = 0{,}18$~rad ($\approx 10^\circ$),
+$d_{\mathrm{ctrl}} = 0{,}20$~m y $T_{\mathrm{hold}} = 0{,}35$~s.
+
 \subsection{Llegar a la portería (Reach Goal)}
 Es el comportamiento de producción: empujar el balón hacia una portería visible usando la cámara del
 robot. Un detector YOLO de \code{ball} + \code{goal} publica \code{/soccer/detections}; el
@@ -595,28 +641,30 @@ Para \emph{Llegar a la portería} se construyó una tubería de datos completa y
 
 \paragraph{Desempeño del detector.}
 Sobre el conjunto de validación, el detector YOLO de \code{ball} y \code{goal} \textbf{funciona muy bien}:
-la matriz de confusión del entrenamiento (Fig.~\ref{fig:confmat}) muestra el balón clasificado
-correctamente en el 100\,\% de los casos y la portería en el 90\,\% (con un 10\,\% de porterías no
-detectadas, confundidas con el fondo). Es decir, \textbf{en las imágenes del \emph{dataset} la percepción
-es fiable}. La limitación real no está en el \emph{dataset}, sino \textbf{en despliegue, cuando el robot se
-acerca demasiado a la portería}: a corta distancia la portería deja de caber en el cuadro de la cámara y el
-detector ya no la reconoce de forma continua, lo que degrada el remate (Sección~\ref{sec:resultados-exp}).
+la matriz de confusión del entrenamiento (Figs.~\ref{fig:confmat-norm} y~\ref{fig:confmat-counts}) muestra
+el balón clasificado correctamente en el 100\,\% de los casos y la portería en el 90\,\% (con un 10\,\% de
+porterías no detectadas, confundidas con el fondo). Es decir, \textbf{en las imágenes del \emph{dataset} la
+percepción es fiable}. La limitación real no está en el \emph{dataset}, sino \textbf{en despliegue, cuando
+el robot se acerca demasiado a la portería}: a corta distancia la portería deja de caber en el cuadro de la
+cámara y el detector ya no la reconoce de forma continua, lo que degrada el remate
+(Sección~\ref{sec:resultados-exp}).
 
 \begin{figure}[H]
 \centering
-\begin{minipage}[b]{0.49\textwidth}\centering
-  \includegraphics[width=\linewidth]{figures/metrics/yolo_confusion_matrix_normalized.png}\par\smallskip
-  {\small (a) Normalizada}
-\end{minipage}\hfill
-\begin{minipage}[b]{0.49\textwidth}\centering
-  \includegraphics[width=\linewidth]{figures/metrics/yolo_confusion_matrix.png}\par\smallskip
-  {\small (b) Conteos absolutos}
-\end{minipage}
-\caption{Matriz de confusión del entrenamiento de YOLO (\texttt{ball}\,+\,\texttt{goal}) sobre el conjunto
-de validación: (a)~normalizada y (b)~en conteos absolutos. El balón se detecta sin error y la portería con
-alta fiabilidad en el \emph{dataset}; el problema de detección aparece sólo a muy corta distancia durante
-la simulación (Sección~\ref{sec:resultados-exp}).}
-\label{fig:confmat}
+\includegraphics[width=0.62\textwidth]{figures/metrics/yolo_confusion_matrix_normalized.png}
+\caption{Matriz de confusión \textbf{normalizada} del entrenamiento de YOLO
+(\texttt{ball}\,+\,\texttt{goal}) sobre el conjunto de validación: el balón se clasifica correctamente el
+100\,\% de las veces y la portería el 90\,\%. En el \emph{dataset} la percepción es fiable.}
+\label{fig:confmat-norm}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.62\textwidth]{figures/metrics/yolo_confusion_matrix.png}
+\caption{Matriz de confusión en \textbf{conteos absolutos} (mismos datos de la
+Fig.~\ref{fig:confmat-norm}). El problema de detección no aparece en el \emph{dataset}, sino sólo a muy
+corta distancia durante la simulación (Sección~\ref{sec:resultados-exp}).}
+\label{fig:confmat-counts}
 \end{figure}
 
 % ============================ 8. RESULTADOS ============================

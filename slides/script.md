@@ -74,6 +74,14 @@ Funciona así: la detección por color se convierte en un estado del balón, y u
 
 ---
 
+## Diapositiva 8b — Control de balón: cómo lo mantiene centrado · ≈35 s
+
+"Veamos cómo lo hace, de forma sencilla. Lo primero es entender que el robot **no sabe dónde está el balón en el mundo real**: solo lo ve en la imagen de la cámara. Para él, 'tener el balón centrado' es simplemente que el balón aparezca en el **centro del cuadro**.
+
+Entonces hace tres cosas. **Primero**, mide cuánto se desvió el balón del centro y lo convierte en un **ángulo**: si está justo en el medio, el ángulo es cero; si se va hacia un lado, el ángulo crece hacia ese lado. **Segundo**, gira **en proporción a ese error**: si está muy descentrado corrige rápido, y si ya está casi centrado gira suavecito; el signo solo hace que gire hacia el balón. **Y tercero**, no canta victoria al instante: solo da el balón por 'controlado' si se mantiene centrado y cerca durante un ratito. Es un control muy simple, predecible y fácil de depurar."
+
+---
+
 ## Diapositiva 9 — Llegar a la portería · ≈55 s
 
 "El segundo comportamiento es más ambicioso: **llevar el balón hasta una portería visible**. Y lo hace **guiado solo por percepción**: nunca usa las posiciones reales que conoce Gazebo; todo sale de la cámara.
@@ -136,11 +144,11 @@ El principio rector es siempre el mismo: mantener una base determinista y medibl
 | Portada + hoja de ruta | ~0:40 |
 | Punto de partida + motivación | ~1:30 |
 | Mapeo + arquitectura | ~1:40 |
-| Fases + comportamientos | ~2:25 |
+| Fases + comportamientos (incl. formulación) | ~2:55 |
 | Percepción + resultados | ~1:20 |
 | Resultado clave (remate a corta distancia) | ~0:45 |
 | Futuro + conclusión + cierre | ~1:20 |
-| **Total** | **≈ 8:35 min** |
+| **Total** | **≈ 9:05 min** |
 
 > Para acercarte a **5 min**: acorta los párrafos de las diapositivas 5, 6 y 9 (di solo la primera frase de cada una).
 > Para acercarte a **10 min**: añade un ejemplo concreto al hablar de cada comportamiento (8 y 9) y comenta una cifra de la tubería de datos (10).

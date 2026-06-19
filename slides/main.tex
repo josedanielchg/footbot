@@ -224,6 +224,21 @@
   \end{columns}
 \end{frame}
 
+% ======================= 8b. CONTROL DE BALÓN: FORMULACIÓN =======================
+\begin{frame}{Control de balón: ¿cómo lo mantiene centrado?}
+  \textbf{Idea:} el robot \alert{solo ve el balón en la imagen}; ``centrado'' = el balón en el centro del cuadro. Mide cuánto se desvía y gira para corregirlo.
+  \medskip
+
+  \textbf{1. Mide la desviación} como un ángulo $\theta$ (si está centrado, $\theta = 0$):
+  \[ \theta = \arctan\!\left(\frac{u - W/2}{f}\right) \]
+
+  \textbf{2. Gira proporcional al error} (más descentrado $\Rightarrow$ corrige más rápido):
+  \[ \omega = -\,K_p\,\theta \qquad (\text{el signo} - \text{ gira hacia el balón}) \]
+
+  \textbf{3. Lo da por ``controlado''} solo si sigue centrado y cerca un tiempo:
+  \[ \lvert\theta\rvert \le \theta_{\mathrm{tol}} \ \text{ y }\ d \le d_{\mathrm{ctrl}} \ \text{ durante } \ge T_{\mathrm{hold}} \]
+\end{frame}
+
 % ======================= 9. LLEGAR A LA PORTERÍA =======================
 \begin{frame}{Comportamiento 2: Llegar a la portería}
   Empujar el balón hacia una portería visible, \alert{guiado solo por percepción} (sin usar poses reales de Gazebo).
